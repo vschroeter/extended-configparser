@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "extended-configparser"
+version = "0.1.0"
+authors = [{ name = "Valentin Schröter", email = "vasc9380@th-wildau.de" }]
+description = "Extended config parser."
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+]
+classifiers = ["Programming Language :: Python :: 3"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/extended_configparser"]
+
+[project.urls]
+Homepage = "https://github.com/vschroeter/extended-configparser"
+Issues = "https://github.com/vschroeter/extended-configparser/issues"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
