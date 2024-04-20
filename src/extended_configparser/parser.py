@@ -42,21 +42,10 @@ class ExtendedConfigParser(configparser.ConfigParser):
         self._delimiters = delimiters
         self._comment_prefixes = comment_prefixes
 
-    def parse_comments(self, text: str | Iterable[str]) -> None:
-
-        matcher = ConfigMatcher(self._delimiters, self._comment_prefixes)
-        matches = list(matcher.get_matches(text))
-        # print("Matches:", len(matches))
-        for m in matches:
-            # print("Match:", m.comment, m.section, m.option)
-            if m.section is None and m.option is None:
-                if self.top_comment is None:
-                    self.top_comment = m.comment
-                else:
-                    self.end_comment = m.comment
-            else:
-                self.set_comment(m.section, m.option, m.comment)
-
+    #############################################################################
+    ### INTERNAL AND OVERRIDE METHODS
+    #############################################################################
+    
     def read(self, filenames, encoding=None):
         """Read and parse a filename or an iterable of filenames.
 
@@ -74,7 +63,7 @@ class ExtendedConfigParser(configparser.ConfigParser):
         for filename in filenames:
             with open(filename, encoding=encoding) as f:
                 self.read_file(f, filename)
-                self.parse_comments(f.read())
+                self._parse_comments(f.read())
 
     def read_file(self, f, source):
         """Like read() but the argument must be a file-like object.
@@ -86,38 +75,10 @@ class ExtendedConfigParser(configparser.ConfigParser):
         """
         super().read_file(f, source)
         f.seek(0)
-        self.parse_comments(f)
-    
-    def get_comment(self, section: str, option: str = None) -> str:
+        self._parse_comments(f)
 
-        if option is None:
-            return self._section_comments.get(section, "")
-        
-        option = option.lower()
-        return self._option_comments.get(section, {}).get(option, "")
 
-    def set_comment(self, section: str, option: str = None, comment: str = None):
-        if section is None and option is None:
-            return
         
-        if section is None:
-            return
-        
-        if option is None:
-            self._section_comments[section] = comment
-            return
-        
-        option = option.lower()
-        if section not in self._option_comments:
-            self._option_comments[section] = {}
-        
-        self._option_comments[section][option] = comment
-
-    def set(self, section: str, option: str, value: str | None, comment: str | None = None):
-        super().set(section, option, value)
-        if comment:
-            self.set_comment(section, option, comment)
-
     def write(self, fp, space_around_delimiters=True):
         """Write an .ini-format representation of the configuration state.
 
@@ -165,3 +126,150 @@ class ExtendedConfigParser(configparser.ConfigParser):
                 fp.write("{}\n".format(ConfigMatcher.add_prefix(comment, self._comment_prefixes[0])))
             fp.write("{}{}\n".format(key, value))
         fp.write("\n")
+    
+    def _parse_comments(self, text: str | Iterable[str]) -> None:
+
+        matcher = ConfigMatcher(self._delimiters, self._comment_prefixes)
+        matches = list(matcher.get_matches(text))
+        # print("Matches:", len(matches))
+        for m in matches:
+            # print("Match:", m.comment, m.section, m.option)
+            if m.section is None and m.option is None:
+                if self.top_comment is None:
+                    self.top_comment = m.comment
+                else:
+                    self.end_comment = m.comment
+            else:
+                self.set_comment(m.section, m.option, m.comment)
+
+    #############################################################################
+    ### PUBLIC METHODS
+    #############################################################################
+
+    def get_comment(self, section: str, option: str = None) -> str:
+        """Return the comment for a section or option.
+
+        Parameters
+        ----------
+        section : str
+            Section name
+        option : str, optional
+            Option name. If None, the comment for the section is returned.
+        Returns
+        -------
+        str
+            The comment for the section or option.
+        """         
+        if option is None:
+            return self._section_comments.get(section, "")
+        
+        option = option.lower()
+        return self._option_comments.get(section, {}).get(option, "")
+
+    def set_comment(self, section: str, option: str = None, comment: str = None):
+        """Set a comment for a section or option.
+
+        Parameters
+        ----------
+        section : str
+            Section name
+        option : str, optional
+            Option name. If None, the comment is set for the section, by default None
+        comment : str, optional
+            Comment to set
+        """        
+        if section is None and option is None:
+            return
+        
+        if section is None:
+            return
+        
+        if option is None:
+            self._section_comments[section] = comment
+            return
+        
+        option = option.lower()
+        if section not in self._option_comments:
+            self._option_comments[section] = {}
+        
+        self._option_comments[section][option] = comment
+
+    def set(self, section: str, option: str, value: str | None, comment: str | None = None):
+        """Set an option in a section.
+        Optionally set a comment for the option.
+        """
+        super().set(section, option, value)
+        if comment:
+            self.set_comment(section, option, comment)
+
+
+    #############################################################################
+    ### ADDITIONAL GETTER METHODS
+    #############################################################################
+
+    @staticmethod
+    def split_to_list(list_str: str, delimiter=",") -> list[str]:
+        if list_str is None or list_str == "":
+            return []
+        return [i.strip() for i in list_str.split(delimiter)]
+    
+    def get_list(self, section: str, option: str, delimiter=",", fallback=None) -> list[str]:
+        """Get a list from a configuration option.
+
+        Parameters
+        ----------
+        section : str
+            Section name
+        option : str
+            Option name
+        delimiter : str, optional
+            List delimiter, by default ","
+        fallback : _type_, optional
+            Fallback value, by default None
+
+        Returns
+        -------
+        list[str]
+            The list
+        """        
+        v = self.get(section, option, fallback=None)
+        if v is None:
+            return fallback
+        return self.split_to_list(v, delimiter)
+    
+    def get_abs_path(self, option: str, section: str, root_dir = None, create_dir=False, fallback=None) -> str | None:
+        """Get an absolute path from a configuration option.
+
+        Parameters
+        ----------
+        option : str
+            Option name
+        section : str
+            Section name
+        root_dir : _type_, optional
+            If given, relative paths are joined with this root directory, by default None
+        create_dir : bool, optional
+            If True, the directory is created if it does not exist, by default False
+        fallback : _type_, optional
+            Fallback value, by default None
+
+        Returns
+        -------
+        str | None
+            The absolute path
+        """        
+        path = self.get(section, option, fallback=fallback)
+        if path is None:
+            return None
+        
+        if not os.path.isabs(path) and root_dir is not None:
+            path = os.path.join(root_dir, path)
+
+        n_path = os.path.normpath(path)
+        a_path = os.path.abspath(n_path)
+
+        if create_dir:
+            if not os.path.exists(a_path):
+                os.makedirs(a_path, exist_ok=True)
+
+        return a_path
