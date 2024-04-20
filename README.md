@@ -84,3 +84,24 @@ b = $TEMP_ENV_VAR1/${Section1:b}/${TEMP_ENV_VAR2}
 
 This project is snspired by [commented-configparser](https://github.com/Preocts/commented-configparser).
 However, it is not a fork, but a new implementation to allow in code manipulation of comments.
+
+
+## FAQ
+
+### Why not just using much simpler EnvInterpolation?
+
+Here on [Stackoverflow](https://stackoverflow.com/questions/26586801/configparser-and-string-interpolation-with-env-variable) a much simpler answer is posted:
+```python
+class EnvInterpolation(configparser.ExtendedInterpolation):
+    """
+    Interpolation which combines ExtendedInterpolation with environment variables interpolation.
+    Environment variables in values can be denoted as `${ENV_VAR}` or `$ENV_VAR`. 
+    """
+    def before_read(self, parser, section, option, value):
+        value = super().before_read(parser, section, option, value)
+        return os.path.expandvars(value)
+```
+
+This solution however does not allow for fetching the raw values in the configuration file.
+Especially for writing back, the raw values are needed to keep the correct configuration.
+
