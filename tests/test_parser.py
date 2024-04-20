@@ -51,3 +51,28 @@ def test_write(shared_datadir, tmp_path):
         assert output_line.strip() == result_line.strip()
 
 
+def test_change_comment(shared_datadir, tmp_path):
+    contents = (shared_datadir / "config1.cfg").read_text()
+    result = (shared_datadir / "config2_result.cfg").read_text()
+    
+    parser = ExtendedConfigParser()
+    parser.read_string(contents)
+    parser.set_comment("Section.A", comment = "New Section Comment")
+    parser.set_comment("Section.A", "option2", comment = "New option2 comment")
+
+    output_path = tmp_path / "output.cfg"
+    with open(output_path, "w") as f:
+        parser.write(f)
+
+    output_contents = output_path.read_text()
+
+    output_lines = output_contents.split("\n")
+    result_lines = result.split("\n")
+
+    print(output_lines)
+    print(result_lines)
+
+    assert len(output_lines) == len(result_lines)
+    for output_line, result_line in zip(output_lines, result_lines):
+
+        assert output_line.strip() == result_line.strip()

@@ -1,17 +1,50 @@
 # Extended Configparser
 
 Extended features for the normal [Python Configparser](https://docs.python.org/3/library/configparser.html):
-- Write comments to the configuration file
-- Read comments from the configuration file
+- Write comments to and read comments from the configuration file
+- Access and alter the comments of a section or an option in your code
 - Environment variable interpolation inside the configuration file
 
 Furthermore it adds some helper classes to create configuration files interactively by asking the user for input, using the [InquirerPy](https://inquirerpy.readthedocs.io/en/latest/) package.
 
 
+## Installation
 
-Inspired by [commented-configparser](https://github.com/Preocts/commented-configparser)
+From PyPI:
 
+```bash
+pip install extended-configparser
+```
 
+... or directly from GitHub:
+```bash
+pip install extended-configparser@git+https://github.com/vschroeter/extended-configparser
+```
+
+## Example Usage
+
+```python 
+from extended_configparser.parser import ExtendedConfigParser
+
+# Load the config
+config = ExtendedConfigParser()
+config.read("myconfig.cfg")
+
+# Use the configuration as usual
+...
+
+# Update the configuration as usual
+...
+
+# Access and alter the comments of a section or an option
+comment = config.get_comment("Section1")
+parser.set_comment("Section.A", comment = "New Section Comment")
+parser.set_comment("Section.A", "option1", comment = "New option comment")
+
+# Save the config back to the file
+with open("myconfig.cfg", "w") as savefile:
+    config.write(savefile)
+```
 
 ## Environment Interpolation
 
@@ -45,3 +78,9 @@ a = ${Section1:a}
 # -> b = temp1/a/temp2
 b = $TEMP_ENV_VAR1/${Section1:b}/${TEMP_ENV_VAR2} 
 ```
+
+
+## Related projects
+
+This project is snspired by [commented-configparser](https://github.com/Preocts/commented-configparser).
+However, it is not a fork, but a new implementation to allow in code manipulation of comments.

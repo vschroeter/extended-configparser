@@ -96,16 +96,15 @@ class ExtendedConfigParser(configparser.ConfigParser):
         option = option.lower()
         return self._option_comments.get(section, {}).get(option, "")
 
-    def set_comment(self, section: str, option: str, comment: str):
-        if not section and not option:
+    def set_comment(self, section: str, option: str = None, comment: str = None):
+        if section is None and option is None:
             return
         
-        if not section:
+        if section is None:
             return
         
-        if not option:
-            if section not in self._section_comments:
-                self._section_comments[section] = comment
+        if option is None:
+            self._section_comments[section] = comment
             return
         
         option = option.lower()
