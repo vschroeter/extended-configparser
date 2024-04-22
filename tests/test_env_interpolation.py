@@ -42,3 +42,5 @@ def test_interpolation(shared_datadir, tmp_path):
     assert parser.get("Section1", "d") == "EnvValue2"
     assert parser.get("Section2", "a") == "a"
     assert parser.get("Section2", "b") == "EnvValue2/a/EnvValue1"
+    
+    assert parser.get("Section2", "b", raw=True) == r"$TEMP_ENV_VAR2/${Section1:b}/${TEMP_ENV_VAR1}"
