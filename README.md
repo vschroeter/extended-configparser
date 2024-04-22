@@ -13,6 +13,8 @@ From PyPI:
 
 ```bash
 pip install extended-configparser
+# Or if you plan to use the interactive configuration setup
+pip install extended-configparser[cli]
 ```
 
 ... or directly from GitHub:
@@ -22,7 +24,7 @@ pip install extended-configparser@git+https://github.com/vschroeter/extended-con
 
 ## Example Usage
 
-```python 
+```python
 from extended_configparser.parser import ExtendedConfigParser
 
 # Load the config
@@ -58,7 +60,7 @@ parser = ExtendedConfigParser(interpolation=EnvInterpolation())
 parser.read("config.cfg")
 ```
 
-Using the `EnvInterpolation` environment variables gets substituted: 
+Using the `EnvInterpolation` environment variables gets substituted:
 
 ```ini
 # Assuming the following environment variables:
@@ -73,9 +75,9 @@ d = ${TEMP_ENV_VAR2}    # -> d = temp2
 
 [Section2]
 # -> a = a
-a = ${Section1:a} 
+a = ${Section1:a}
 # -> b = temp1/a/temp2
-b = $TEMP_ENV_VAR1/${Section1:b}/${TEMP_ENV_VAR2} 
+b = $TEMP_ENV_VAR1/${Section1:b}/${TEMP_ENV_VAR2}
 ```
 
 ## Advanced & Interactive Configuration
@@ -90,16 +92,16 @@ class MyConfig(Configuration):
     def __init__(self, path: str):
         super().__init__(path)
         self.value1 = ConfigEntry(
-            section="Section1", 
-            option="value1", 
-            default="default", 
+            section="Section1",
+            option="value1",
+            default="default",
             message="Description of value1"
         )
 
         self.value2 = ConfigEntry(
-            section="Section1", 
-            option="value2", 
-            default="default", 
+            section="Section1",
+            option="value2",
+            default="default",
             message="Description of value2"
         )
 
@@ -138,7 +140,7 @@ config.write()
 
 To define more complex configurations, you can use `ConfigEntryCollection` and `ConfigSection` objects.
 
-Interpolation of environment variables and other section values is supported by default. 
+Interpolation of environment variables and other section values is supported by default.
 
 ```python
 
@@ -170,14 +172,14 @@ class MyConfig(Configuration):
     def __init__(self, path: str):
         super().__init__(path)
         self.value1 = ConfigEntry(
-            section="Section1", 
-            option="value1", 
-            default="default", 
+            section="Section1",
+            option="value1",
+            default="default",
             message="Description of value1"
         )
 
         self.paths = MainConfigPaths()
-        
+
 
 config = MyConfig("myconfig.cfg")
 config.load()
@@ -200,7 +202,7 @@ Here on [Stackoverflow](https://stackoverflow.com/questions/26586801/configparse
 class EnvInterpolation(configparser.ExtendedInterpolation):
     """
     Interpolation which combines ExtendedInterpolation with environment variables interpolation.
-    Environment variables in values can be denoted as `${ENV_VAR}` or `$ENV_VAR`. 
+    Environment variables in values can be denoted as `${ENV_VAR}` or `$ENV_VAR`.
     """
     def before_read(self, parser, section, option, value):
         value = super().before_read(parser, section, option, value)
@@ -209,4 +211,3 @@ class EnvInterpolation(configparser.ExtendedInterpolation):
 
 This solution however does not allow for fetching the raw values in the configuration file.
 Especially for writing back, the raw values are needed to keep the correct configuration.
-

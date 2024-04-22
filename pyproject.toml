@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-requirements-txt"]
 build-backend = "hatchling.build"
 
 
@@ -11,8 +11,30 @@ description = "Extended config parser."
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
+    # "InquirerPy"
 ]
+
 classifiers = ["Programming Language :: Python :: 3"]
+
+[project.optional-dependencies]
+cli = ["InquirerPy"]
+test = [
+    "nox",
+    "pytest-datadir",
+    "pytest-mock",
+    "pytest",
+]
+dev = [
+    "black",
+    "flake8",
+    "mypy",
+    "pre-commit",
+    "pytest-cov",
+    "extended-configparser[cli]",
+    "extended-configparser[test]"
+]
+
+
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/extended_configparser"]
@@ -25,3 +47,19 @@ Issues = "https://github.com/vschroeter/extended-configparser/issues"
 addopts = [
     "--import-mode=importlib",
 ]
+
+
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_incomplete_defs = false
+disallow_untyped_defs = false
