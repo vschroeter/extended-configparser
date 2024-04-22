@@ -55,7 +55,7 @@ Thus, configuration files with comments stay readable:
 [Section1]
 # This is the old comment for option1
 option1 = value1
-# This is the multiline  
+# This is the multiline
 # comment for option2
 option2 = value1
 ...
@@ -225,7 +225,7 @@ pip install -e .[dev]
 
 ## Contributing
 
-Contributions to extend the functionality or to solve existing problems are welcome! 
+Contributions to extend the functionality or to solve existing problems are welcome!
 Requirements for pull requests are:
 - All code is tested (if applicable). Running `nox` (or `pytest`) should not raise any errors.
 - Naming is consistent with project naming.
@@ -258,6 +258,6 @@ This solution however does not allow for fetching the raw values in the configur
 Especially for writing back, the raw values are needed to keep the correct configuration.
 
 ## License
-This project is licensed under the Apache License 2.0. 
-For details, please see the LICENSE file. 
+This project is licensed under the Apache License 2.0.
+For details, please see the LICENSE file.
 By contributing to this project, you agree to abide by the terms and conditions of the Apache License 2.0.
