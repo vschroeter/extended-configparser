@@ -60,8 +60,8 @@ def test_change_comment(shared_datadir, tmp_path):
 
     parser = ExtendedConfigParser()
     parser.read_string(contents)
-    parser.set_comment("Section.A", comment = "New Section Comment")
-    parser.set_comment("Section.A", "option2", comment = "New option2 comment")
+    parser.set_comment("Section.A", comment="New Section Comment")
+    parser.set_comment("Section.A", "option2", comment="New option2 comment")
 
     output_path = tmp_path / "output.cfg"
     with open(output_path, "w") as f:

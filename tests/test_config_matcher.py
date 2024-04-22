@@ -7,6 +7,7 @@ from extended_configparser.parser import ConfigMatcher
 DELIMITER = ["=", ":"]
 COMMENT_PREFIXES = ["#", ";"]
 
+
 @pytest.mark.parametrize(
     "line,expected",
     [
@@ -51,6 +52,7 @@ def test_section(line, section):
     matcher = ConfigMatcher(delimiters=DELIMITER, comment_prefixes=COMMENT_PREFIXES)
     result = matcher.get_section(line)
     assert result == section
+
 
 @pytest.mark.parametrize(
     ("line", "option"),

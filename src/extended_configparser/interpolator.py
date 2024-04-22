@@ -12,7 +12,7 @@ class EnvInterpolation(configparser.ExtendedInterpolation):
     def __init__(self, allow_uninterpolated_values: bool = False) -> None:
         self.allow_uninterpolated_values = allow_uninterpolated_values
 
-    def _interpolate_some(self, parser, option, accum, rest, section, map, depth) -> None: # type: ignore
+    def _interpolate_some(self, parser, option, accum, rest, section, map, depth) -> None:  # type: ignore
         rawval = parser.get(section, option, raw=True, fallback=rest)
 
         if depth > configparser.MAX_INTERPOLATION_DEPTH:
@@ -37,7 +37,9 @@ class EnvInterpolation(configparser.ExtendedInterpolation):
                 m = self._KEYCRE.match(rest)
                 if m is None:
                     raise configparser.InterpolationSyntaxError(
-                        option, section, "bad interpolation variable reference %r" % rest
+                        option,
+                        section,
+                        "bad interpolation variable reference %r" % rest,
                     )
                 path = m.group(1).split(":")
                 rest = rest[m.end() :]
@@ -63,12 +65,24 @@ class EnvInterpolation(configparser.ExtendedInterpolation):
                         raise configparser.InterpolationSyntaxError(
                             option, section, "More than one ':' found: %r" % (rest,)
                         )
-                except (KeyError, configparser.NoSectionError, configparser.NoOptionError):
+                except (
+                    KeyError,
+                    configparser.NoSectionError,
+                    configparser.NoOptionError,
+                ):
                     raise configparser.InterpolationMissingOptionError(
                         option, section, rawval, ":".join(path)
                     ) from None
                 if "$" in v:
-                    self._interpolate_some(parser, opt, accum, v, sect, dict(parser.items(sect, raw=True)), depth + 1)
+                    self._interpolate_some(
+                        parser,
+                        opt,
+                        accum,
+                        v,
+                        sect,
+                        dict(parser.items(sect, raw=True)),
+                        depth + 1,
+                    )
                 else:
                     accum.append(v)
             else:
@@ -78,5 +92,7 @@ class EnvInterpolation(configparser.ExtendedInterpolation):
                     rest = rest[2:]
                 else:
                     raise configparser.InterpolationSyntaxError(
-                        option, section, "'$' must be followed by '$' or '{', " "found: %r" % (rest,)
+                        option,
+                        section,
+                        "'$' must be followed by '$' or '{', " "found: %r" % (rest,),
                     )

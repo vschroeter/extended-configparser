@@ -25,7 +25,14 @@ class ConfigSection:
     def __init__(self, name: str) -> None:
         self.name = name
 
-    def ConfigOption(self, option: str, default: str, message: str, required: bool = True, **inquirer_kwargs) -> ConfigEntry:
+    def ConfigOption(
+        self,
+        option: str,
+        default: str,
+        message: str,
+        required: bool = True,
+        **inquirer_kwargs,
+    ) -> ConfigEntry:
         """Create a ConfigEntry for that section with the given parameters."""
         return ConfigEntry(
             section=self.name,

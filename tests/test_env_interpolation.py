@@ -1,5 +1,3 @@
-
-
 from __future__ import annotations
 
 import os
@@ -27,8 +25,6 @@ def test_write(shared_datadir, tmp_path):
     output_contents = output_path.read_text()
 
     assert contents.strip() == output_contents.strip()
-
-
 
 
 def test_interpolation(shared_datadir, tmp_path):
