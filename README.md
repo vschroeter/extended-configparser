@@ -7,7 +7,6 @@ Extended features for the normal [Python Configparser](https://docs.python.org/3
 
 Furthermore it adds some helper classes to create configuration files interactively by asking the user for input, using the [InquirerPy](https://inquirerpy.readthedocs.io/en/latest/) package.
 
-
 ## Installation
 
 From PyPI:
@@ -79,11 +78,117 @@ a = ${Section1:a}
 b = $TEMP_ENV_VAR1/${Section1:b}/${TEMP_ENV_VAR2} 
 ```
 
+## Advanced & Interactive Configuration
+
+### Creating a Configuration Class
+
+For each of your configuration files, you can create a class that inherits from `Configuration` and contains `ConfigEntry` objects.
+These objects make the configuration file more readable and usable in code.
+
+```python
+class MyConfig(Configuration):
+    def __init__(self, path: str):
+        super().__init__(path)
+        self.value1 = ConfigEntry(
+            section="Section1", 
+            option="value1", 
+            default="default", 
+            message="Description of value1"
+        )
+
+        self.value2 = ConfigEntry(
+            section="Section1", 
+            option="value2", 
+            default="default", 
+            message="Description of value2"
+        )
+
+# Create / Load the configuration
+config = MyConfig("myconfig.cfg")
+config.load()
+
+# Read the config values
+print(config.value1)
+print(config.value2)
+
+# Set new values
+config.value1 = "new value"
+
+# Write the config back
+config.write()
+```
+
+### Interactive Configuration
+
+Your configuration class can also be used for an interactive configuration setup.
+This is useful for the first setup of a configuration file.
+
+```python
+config = MyConfig("myconfig.cfg")
+# Load the configuration if existing. If it does not exist, a new configuration file with default values is created.
+config.load()
+# Inquire the user for the configuration values
+# Each ConfigEntry will be asked for its value
+config.inquire()
+# Write the config back
+config.write()
+```
+
+### Further Configuration Definition Options
+
+To define more complex configurations, you can use `ConfigEntryCollection` and `ConfigSection` objects.
+
+Interpolation of environment variables and other section values is supported by default. 
+
+```python
+
+# Collection of values used in your configuration
+class MainConfigPaths(ConfigEntryCollection):
+    def __init__(self):
+        section = ConfigSection("Dirs")
+        self.data_root_dir = section.ConfigOption(
+            "data_root_dir",
+            r"${HOME}/data/",
+            "Root directory for all data",
+            long_instruction="The subdirectories defined in [Subdirs] will be created in this directory, except you define them as absolute paths.",
+        )
+        self.app_data_dir = section.ConfigOption(
+            "app_data_dir",
+            r"/opt/app/data/",
+            "Directory for application data from the app.",
+        )
+
+        subdir_section = ConfigSection("Subdirs")
+        self.cache_dir = subdir_section.ConfigOption(
+            "cache_dir",
+            r"${Dirs:data_root_dir}/cache/",
+            "Main directory for cache files, e.g. for the discovering process.",
+        )
+
+
+class MyConfig(Configuration):
+    def __init__(self, path: str):
+        super().__init__(path)
+        self.value1 = ConfigEntry(
+            section="Section1", 
+            option="value1", 
+            default="default", 
+            message="Description of value1"
+        )
+
+        self.paths = MainConfigPaths()
+        
+
+config = MyConfig("myconfig.cfg")
+config.load()
+config.inquire()
+config.write()
+```
 
 ## Related projects
 
-This project is snspired by [commented-configparser](https://github.com/Preocts/commented-configparser).
-However, it is not a fork, but a new implementation to allow in code manipulation of comments.
+This project is inspired by [commented-configparser](https://github.com/Preocts/commented-configparser).
+However, it is not a fork, but a new implementation to allow in-code manipulation of comments.
 
 
 ## FAQ
