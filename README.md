@@ -187,11 +187,27 @@ config.inquire()
 config.write()
 ```
 
+## Dev Setup
+```bash
+git clone https://github.com/vschroeter/extended-configparser.git && cd extended-configparser
+git checkout dev
+pip install -e .[dev]
+```
+
+## Contributing
+
+Contributions to extend the functionality or to solve existing problems are welcome! 
+Requirements for pull requests are:
+- All code is tested (if applicable). Running `nox` (or `pytest`) should not raise any errors.
+- Naming is consistent with project naming.
+- `pre-commit` passes all selected pre-commit checks.
+- Commits are squashed and contain a clear commit message describing what functionality is added.
+
+
 ## Related projects
 
 This project is inspired by [commented-configparser](https://github.com/Preocts/commented-configparser).
 However, it is not a fork, but a new implementation to allow in-code manipulation of comments.
-
 
 ## FAQ
 
@@ -211,3 +227,8 @@ class EnvInterpolation(configparser.ExtendedInterpolation):
 
 This solution however does not allow for fetching the raw values in the configuration file.
 Especially for writing back, the raw values are needed to keep the correct configuration.
+
+## License
+This project is licensed under the Apache License 2.0. 
+For details, please see the LICENSE file. 
+By contributing to this project, you agree to abide by the terms and conditions of the Apache License 2.0.
