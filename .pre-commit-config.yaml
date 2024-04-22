@@ -1,0 +1,47 @@
+repos:
+  # Batch of helpful formatters and patterns
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: "v4.6.0"
+    hooks:
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-docstring-first
+      - id: debug-statements
+      - id: mixed-line-ending
+
+  # Adds a standard feel to import segments
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args:
+          - "--force-single-line-imports"
+          - "--add-import"
+          - "from __future__ import annotations"
+          - "--profile"
+          - "black"
+
+  # Format code. No, I don't like everything black does either.
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 24.4.0
+    hooks:
+      - id: black
+        args: ["--line-length", "120"]
+
+  # # Flake8 for linting, line-length adjusted to match Black default
+  # - repo: https://github.com/PyCQA/flake8
+  #   rev: 7.0.0
+  #   hooks:
+  #     - id: flake8
+  #       additional_dependencies:
+  #         - flake8-builtins
+  #         - flake8-pep585
+
+  # # Type enforcement for Python
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.9.0
+  #   hooks:
+  #     - id: mypy
