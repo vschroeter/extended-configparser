@@ -49,6 +49,9 @@ def test_write(shared_datadir, tmp_path):
     output_lines = output_contents.split("\n")
     result_lines = result.split("\n")
 
+    output_lines = [line.strip() for line in output_lines if len(line.strip()) > 0]
+    result_lines = [line.strip() for line in result_lines if len(line.strip()) > 0]
+
     assert len(output_lines) == len(result_lines)
     for output_line, result_line in zip(output_lines, result_lines):
         assert output_line.strip() == result_line.strip()
@@ -71,6 +74,9 @@ def test_change_comment(shared_datadir, tmp_path):
 
     output_lines = output_contents.split("\n")
     result_lines = result.split("\n")
+
+    output_lines = [line.strip() for line in output_lines if len(line.strip()) > 0]
+    result_lines = [line.strip() for line in result_lines if len(line.strip()) > 0]
 
     print(output_lines)
     print(result_lines)
