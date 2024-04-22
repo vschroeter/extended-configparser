@@ -38,7 +38,7 @@ config.read("myconfig.cfg")
 ...
 
 # Access and alter the comments of a section or an option
-comment = config.get_comment("Section1")
+comment = config.get_comment("Section.A")
 parser.set_comment("Section.A", comment = "New Section Comment")
 parser.set_comment("Section.A", "option1", comment = "New option comment")
 
@@ -46,6 +46,35 @@ parser.set_comment("Section.A", "option1", comment = "New option comment")
 with open("myconfig.cfg", "w") as savefile:
     config.write(savefile)
 ```
+
+Thus, configuration files with comments stay readable:
+```ini
+### myconfig.cfg BEFORE ###
+
+# This is the old comment for Section.A
+[Section1]
+# This is the old comment for option1
+option1 = value1
+# This is the multiline  
+# comment for option2
+option2 = value1
+...
+
+----------------------------------------
+### myconfig.cfg AFTER ###
+
+# New Section Comment
+[Section1]
+# New option comment
+option1 = value1
+# This is the multiline
+# comment for option2
+option2 = value1
+...
+```
+
+> [!IMPORTANT]
+> While the comments are preserved, the formatting is not guaranteed to be the same as before.
 
 ## Environment Interpolation
 
