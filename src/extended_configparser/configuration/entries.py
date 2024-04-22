@@ -13,6 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 class ConfigEntryCollection():
+    """
+    Super class for grouping ConfigEntries together.
+
+    If you want to structure your configuration entries in a configuration class by grouping entries together in another data class,
+    inherit from this class and define your entries as attributes of type ConfigEntry or ConfigEntryCollection.
+    """
     pass
 
 class ConfigSection():
@@ -104,8 +110,7 @@ class ConfigEntry():
             return
         
         msg = self.message.strip()
-        if not msg.endswith(":"):
-            msg += ":"
+        msg = msg.strip(".:") + ":"
         self.value = inquirer.text(
             message=msg,
             default=(self.value if self.use_existing_as_default else self.default),
