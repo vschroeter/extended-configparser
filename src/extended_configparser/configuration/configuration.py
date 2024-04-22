@@ -1,16 +1,13 @@
 from __future__ import annotations
-import os
-
-from typing import TYPE_CHECKING
-
-from extended_configparser.configuration.entries import ConfigEntry, ConfigEntryCollection
-from extended_configparser.interpolator import EnvInterpolation
-from extended_configparser.parser import ExtendedConfigParser
-
-if TYPE_CHECKING:
-    from InquirerPy.utils import InquirerPyValidate
 
 import logging
+import os
+from configparser import Interpolation
+
+from extended_configparser.configuration.entries import ConfigEntry
+from extended_configparser.configuration.entries import ConfigEntryCollection
+from extended_configparser.interpolator import EnvInterpolation
+from extended_configparser.parser import ExtendedConfigParser
 
 logger = logging.getLogger(__name__)
 
@@ -24,39 +21,39 @@ class Configuration:
     With `inqure()` the user will be asked to provide the values for the defined entries.
     """
 
-    def __init__(self, path: str = None, interpolation=EnvInterpolation()):
+    def __init__(self, path: str, interpolation: Interpolation = EnvInterpolation()) -> None:
         self.config_path = path
 
-        self._entries: list[ConfigEntry] = None
+        self._entries: list[ConfigEntry] = []
         self._config_parser = ExtendedConfigParser(interpolation=interpolation)
 
     @staticmethod
-    def get_config_entries_in_object(obj, ignore=["entries"]):
+    def get_config_entries_in_object(cfg: Configuration, ignore: list[str] = ["entries"]) -> list[ConfigEntry]:
         """
         Get all ConfigEntries in the given object.
         Members in the ignore list will be skipped.
         """
         entries: list[ConfigEntry] = []
-        for attr in obj.__dict__:
+        for attr in cfg.__dict__:
             if attr in ignore:
                 continue
 
-            if isinstance(getattr(obj, attr), ConfigEntry):
-                entries.append(getattr(obj, attr))
-            elif isinstance(getattr(obj, attr), ConfigEntryCollection):
-                entries.extend(Configuration.get_config_entries_in_object(getattr(obj, attr)))
+            if isinstance(getattr(cfg, attr), ConfigEntry):
+                entries.append(getattr(cfg, attr))
+            elif isinstance(getattr(cfg, attr), ConfigEntryCollection):
+                entries.extend(Configuration.get_config_entries_in_object(getattr(cfg, attr)))
 
         return entries
 
     @property
     def entries(self) -> list[ConfigEntry]:
-        if self._entries is None or len(self._entries) == 0:
+        if len(self._entries) == 0:
             # Iter over each attribute of the object and check if it is a ConfigEntry or a subclass of it
             self._entries = Configuration.get_config_entries_in_object(self)
 
         return self._entries
 
-    def load(self, use_default_for_missing_options: bool = True, inquire_if_missing: bool = False):
+    def load(self, use_default_for_missing_options: bool = True, inquire_if_missing: bool = False) -> None:
         """Load the configuration file and set the values of the entries.
 
 
@@ -90,7 +87,7 @@ class Configuration:
                 )
             entry.value = self._config_parser.get(entry.section, entry.option, fallback=entry.default, raw=True)
 
-    def write(self):
+    def write(self) -> None:
         """Write the configuration to the file path."""
         for entry in self.entries:
             self._set_entry(entry)
@@ -102,7 +99,7 @@ class Configuration:
         with open(self.config_path, "w") as f:
             self._config_parser.write(f)
 
-    def _set_entry(self, entry: ConfigEntry):
+    def _set_entry(self, entry: ConfigEntry) -> None:
         """Set the value of the entry in the configuration parser.
 
         Parameters
@@ -115,7 +112,7 @@ class Configuration:
 
         self._config_parser.set(entry.section, entry.option, entry.value, entry.get_comment())
 
-    def inquire(self):
+    def inquire(self) -> None:
         """Inquire the user for the values of the entries."""
 
         logger.debug(f"Configuring @ {self.config_path}")

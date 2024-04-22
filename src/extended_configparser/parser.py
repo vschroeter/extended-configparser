@@ -1,8 +1,9 @@
 from __future__ import annotations
-import configparser
-import os
 
+import configparser
 import logging
+import os
+from typing import Any
 from typing import Iterable
 
 logger = logging.getLogger(__name__)
@@ -17,17 +18,17 @@ class ExtendedConfigParser(configparser.ConfigParser):
         self,
         defaults=None,
         dict_type=dict,
-        allow_no_value=False,
+        allow_no_value: bool = False,
         *,
         delimiters=("=", ":"),
         comment_prefixes=("#", ";"),
         inline_comment_prefixes=None,
-        strict=True,
-        empty_lines_in_values=True,
+        strict: bool = True,
+        empty_lines_in_values: bool = True,
         default_section=configparser.DEFAULTSECT,
-        interpolation=configparser.ExtendedInterpolation(),
+        interpolation: configparser.Interpolation = configparser.ExtendedInterpolation(),
         converters=configparser._UNSET,
-    ):
+    ) -> None:
         if defaults is None:
             defaults = {}
 
@@ -56,7 +57,7 @@ class ExtendedConfigParser(configparser.ConfigParser):
     ### INTERNAL AND OVERRIDE METHODS
     #############################################################################
 
-    def read(self, filenames, encoding=None):
+    def read(self, filenames, encoding=None) -> None:
         """Read and parse a filename or an iterable of filenames.
 
         Files that cannot be opened are silently ignored; this is
@@ -75,7 +76,7 @@ class ExtendedConfigParser(configparser.ConfigParser):
                 self.read_file(f, filename)
                 self._parse_comments(f.read())
 
-    def read_file(self, f, source):
+    def read_file(self, f, source=None) -> None:
         """Like read() but the argument must be a file-like object.
 
         The `f` argument must be iterable, returning one line at a time.
@@ -87,7 +88,7 @@ class ExtendedConfigParser(configparser.ConfigParser):
         f.seek(0)
         self._parse_comments(f)
 
-    def write(self, fp, space_around_delimiters=True):
+    def write(self, fp, space_around_delimiters=True) -> None:
         """Write an .ini-format representation of the configuration state.
 
         If `space_around_delimiters` is True (the default), delimiters
@@ -112,7 +113,7 @@ class ExtendedConfigParser(configparser.ConfigParser):
         if self.end_comment:
             fp.write(ConfigMatcher.add_prefix(self.end_comment, self._comment_prefixes[0]))
 
-    def _write_section(self, fp, section_name: str, section_items: dict[str, str], delimiter: str):
+    def _write_section(self, fp, section_name: str, section_items: dict[str, str], delimiter: str) -> None:
         """Write a single section to the specified `fp`."""
         if section_name in self._section_comments:
             comment = self._section_comments[section_name]
@@ -151,7 +152,7 @@ class ExtendedConfigParser(configparser.ConfigParser):
     ### PUBLIC METHODS
     #############################################################################
 
-    def get_comment(self, section: str, option: str = None) -> str:
+    def get_comment(self, section: str, option: str | None = None) -> str:
         """Return the comment for a section or option.
 
         Parameters
@@ -171,7 +172,7 @@ class ExtendedConfigParser(configparser.ConfigParser):
         option = option.lower()
         return self._option_comments.get(section, {}).get(option, "")
 
-    def set_comment(self, section: str, option: str = None, comment: str = None):
+    def set_comment(self, section: str | None, option: str | None = None, comment: str | None = None) -> None:
         """Set a comment for a section or option.
 
         Parameters
@@ -212,12 +213,12 @@ class ExtendedConfigParser(configparser.ConfigParser):
     #############################################################################
 
     @staticmethod
-    def split_to_list(list_str: str, delimiter=",") -> list[str]:
+    def split_to_list(list_str: str, delimiter: str = ",") -> list[str]:
         if list_str is None or list_str == "":
             return []
         return [i.strip() for i in list_str.split(delimiter)]
 
-    def get_list(self, section: str, option: str, delimiter=",", fallback=None) -> list[str]:
+    def get_list(self, section: str, option: str, delimiter: str = ",", fallback: Any = None) -> list[str]:
         """Get a list from a configuration option.
 
         Parameters
@@ -241,7 +242,9 @@ class ExtendedConfigParser(configparser.ConfigParser):
             return fallback
         return self.split_to_list(v, delimiter)
 
-    def get_abs_path(self, option: str, section: str, root_dir=None, create_dir=False, fallback=None) -> str | None:
+    def get_abs_path(
+        self, option: str, section: str, root_dir: str | None = None, create_dir: bool = False, fallbac: Any = None
+    ) -> str | None:
         """Get an absolute path from a configuration option.
 
         Parameters

@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import pytest
 from pytest import fixture
+
 from extended_configparser.parser import ExtendedConfigParser
 
 DELIMITER = ["=", ":"]
@@ -8,13 +11,13 @@ COMMENT_PREFIXES = ["#", ";"]
 
 def test_read(shared_datadir):
     contents = (shared_datadir / "config1.cfg").read_text()
-    
+
     parser = ExtendedConfigParser()
     print(contents)
     parser.read_string(contents)
 
     assert len(parser.sections()) == 1
-    
+
     top_comment = "Top Comment 1\nTop Comment 2"
     assert parser.top_comment == top_comment
     end_comment = "End of file comment"
@@ -28,12 +31,12 @@ def test_read(shared_datadir):
 
     option2_comment = "Multiline\ncomment"
     assert parser.get_comment("Section.A", "Option2") == option2_comment
-    
-    
+
+
 def test_write(shared_datadir, tmp_path):
     contents = (shared_datadir / "config1.cfg").read_text()
     result = (shared_datadir / "config1_result.cfg").read_text()
-    
+
     parser = ExtendedConfigParser()
     parser.read_string(contents)
 
@@ -54,7 +57,7 @@ def test_write(shared_datadir, tmp_path):
 def test_change_comment(shared_datadir, tmp_path):
     contents = (shared_datadir / "config1.cfg").read_text()
     result = (shared_datadir / "config2_result.cfg").read_text()
-    
+
     parser = ExtendedConfigParser()
     parser.read_string(contents)
     parser.set_comment("Section.A", comment = "New Section Comment")

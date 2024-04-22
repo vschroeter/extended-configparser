@@ -22,10 +22,10 @@ class ConfigSection:
     Create entries by calling `section.ConfigSection("section_name")`.
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
 
-    def ConfigOption(self, option: str, default: str, message: str, required: bool = True, **inquirer_kwargs):
+    def ConfigOption(self, option: str, default: str, message: str, required: bool = True, **inquirer_kwargs) -> ConfigEntry:
         """Create a ConfigEntry for that section with the given parameters."""
         return ConfigEntry(
             section=self.name,
@@ -52,7 +52,7 @@ class ConfigEntry:
         inquire: bool = True,
         use_existing_as_default=True,
         **inquirer_kwargs,
-    ):
+    ) -> None:
         """Create a new ConfigEntry.
 
         Parameters
@@ -80,6 +80,7 @@ class ConfigEntry:
         self.value: str | None = default
         self.use_existing_as_default = use_existing_as_default
         self.inquirer_kwargs = inquirer_kwargs
+        self.do_inquire = inquire
 
         if "qmark" not in self.inquirer_kwargs:
             self.inquirer_kwargs["qmark"] = "?"
@@ -87,20 +88,20 @@ class ConfigEntry:
         if "amark" not in self.inquirer_kwargs:
             self.inquirer_kwargs["amark"] = ">"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.section}:{self.option} = {self.value}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
     @staticmethod
     def escape_whitespace(value: str) -> str:
         return value.replace(" ", "_")
 
-    def inquire(self):
+    def inquire(self) -> None:
         """Inquire the user for the value of this entry."""
 
-        if not self.inquire:
+        if not self.do_inquire:
             return
 
         from InquirerPy import inquirer
@@ -113,7 +114,7 @@ class ConfigEntry:
             **self.inquirer_kwargs,
         ).execute()
 
-    def get_comment(self):
+    def get_comment(self) -> str:
         s = self.message
         if "instruction" in self.inquirer_kwargs:
             s += f"\nInstruction: {self.inquirer_kwargs['instruction']}"

@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import pytest
+
 from extended_configparser.parser import ConfigMatcher
 
 DELIMITER = ["=", ":"]
@@ -72,5 +75,3 @@ def test_option(line, option):
     matcher = ConfigMatcher(delimiters=DELIMITER, comment_prefixes=COMMENT_PREFIXES)
     result = matcher.get_option(line)
     assert result == option
-
-

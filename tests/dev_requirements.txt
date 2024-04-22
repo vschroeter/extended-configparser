@@ -1,4 +1,0 @@
-pytest
-nox
-pytest-datadir
-pytest-mock

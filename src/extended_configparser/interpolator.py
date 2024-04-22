@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import configparser
 import os
-
 import re
 
 
@@ -8,10 +9,10 @@ class EnvInterpolation(configparser.ExtendedInterpolation):
     ENV_PATTERN = re.compile(r"\$\[([^\}]+)\]")
     _KEYCRE = re.compile(r"\$\{([^}]+)\}")
 
-    def __init__(self, allow_uninterpolated_values=False):
+    def __init__(self, allow_uninterpolated_values: bool = False) -> None:
         self.allow_uninterpolated_values = allow_uninterpolated_values
 
-    def _interpolate_some(self, parser, option, accum, rest, section, map, depth):
+    def _interpolate_some(self, parser, option, accum, rest, section, map, depth) -> None: # type: ignore
         rawval = parser.get(section, option, raw=True, fallback=rest)
 
         if depth > configparser.MAX_INTERPOLATION_DEPTH:

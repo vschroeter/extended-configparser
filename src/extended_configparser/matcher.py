@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Iterable
+from collections.abc import Iterable
+from collections.abc import Iterator
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +34,10 @@ class ConfigMatcher:
         self.section_pattern = rf"^\s*\[([^\]]+)\]\s*$"
         self.option_pattern = rf"^\s*(\b.+?\b)\s*?({r_delimiters})"
 
-    def get_matches(self, text: str | Iterable[str]):
+    def get_matches(self, text: str | Iterable[str]) -> Iterator[CommentMatch]:
         """Yield comment matches found in the given text."""
+
+        lines: list[str] | Iterable[str]
 
         if type(text) is str:
             lines = text.split("\n")
@@ -44,7 +47,7 @@ class ConfigMatcher:
         started = False
         current_section = None
         current_option = None
-        current_comment_lines = []
+        current_comment_lines: list[str] = []
 
         for line in lines:
             if self.is_empty(line):
@@ -84,16 +87,16 @@ class ConfigMatcher:
             yield CommentMatch(self, "\n".join(current_comment_lines), None, None)
 
     @staticmethod
-    def clean_prefix(text: str, comment_prefixes: list[str], multiline=True):
+    def clean_prefix(text: str, comment_prefixes: list[str], multiline: bool = True) -> str:
         """Remove comment prefixes from a string."""
 
         if multiline:
-            return "\n".join([line.lstrip(comment_prefixes + [" "]) for line in text.split("\n")])
+            return "\n".join([line.lstrip("".join(comment_prefixes + [" "])) for line in text.split("\n")])
 
-        return text.lstrip(comment_prefixes)
+        return text.lstrip("".join(comment_prefixes))
 
     @staticmethod
-    def add_prefix(text: str, prefix: str, multiline=True, add_space=True):
+    def add_prefix(text: str, prefix: str, multiline: bool = True, add_space: bool = True) -> str:
         """Add a comment prefix to a string."""
 
         if add_space:
@@ -129,7 +132,7 @@ class ConfigMatcher:
 
 
 class CommentMatch:
-    def __init__(self, matcher: ConfigMatcher, raw_comment: str, section: str | None, option: str | None):
+    def __init__(self, matcher: ConfigMatcher, raw_comment: str, section: str | None, option: str | None) -> None:
         self.matcher = matcher
 
         self.raw_comment = raw_comment
