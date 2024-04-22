@@ -1,31 +1,27 @@
 from __future__ import annotations
-import os
-
-from InquirerPy import inquirer
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from InquirerPy.utils import InquirerPyValidate 
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
-class ConfigEntryCollection():
+class ConfigEntryCollection:
     """
     Super class for grouping ConfigEntries together.
 
     If you want to structure your configuration entries in a configuration class by grouping entries together in another data class,
     inherit from this class and define your entries as attributes of type ConfigEntry or ConfigEntryCollection.
     """
+
     pass
 
-class ConfigSection():
+
+class ConfigSection:
     """
     Helper class to group ConfigEntries together under a section.
     Create entries by calling `section.ConfigSection("section_name")`.
     """
+
     def __init__(self, name: str):
         self.name = name
 
@@ -39,13 +35,13 @@ class ConfigSection():
             required=required,
             **inquirer_kwargs,
         )
-    
 
 
-class ConfigEntry():
+class ConfigEntry:
     """
     Represents a single configuration entry.
     """
+
     def __init__(
         self,
         section: str,
@@ -54,7 +50,7 @@ class ConfigEntry():
         message: str,
         required: bool = True,
         inquire: bool = True,
-        use_existing_as_default = True,
+        use_existing_as_default=True,
         **inquirer_kwargs,
     ):
         """Create a new ConfigEntry.
@@ -75,7 +71,7 @@ class ConfigEntry():
             If the entry should be inquired to the user, by default True
         use_existing_as_default : bool, optional
             If True, the existing value of a config is taken as default value when asking the user, otherwise take the given default value, by default True
-        """        
+        """
         self.section = self.escape_whitespace(section)
         self.option = self.escape_whitespace(option)
         self.default = default
@@ -91,10 +87,9 @@ class ConfigEntry():
         if "amark" not in self.inquirer_kwargs:
             self.inquirer_kwargs["amark"] = ">"
 
-
     def __str__(self):
         return f"{self.section}:{self.option} = {self.value}"
-    
+
     def __repr__(self):
         return self.__str__()
 
@@ -102,13 +97,14 @@ class ConfigEntry():
     def escape_whitespace(value: str) -> str:
         return value.replace(" ", "_")
 
-
     def inquire(self):
         """Inquire the user for the value of this entry."""
-        
+
         if not self.inquire:
             return
-        
+
+        from InquirerPy import inquirer
+
         msg = self.message.strip()
         msg = msg.strip(".:") + ":"
         self.value = inquirer.text(

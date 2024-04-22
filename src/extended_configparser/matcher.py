@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import re
 from typing import Iterable
+
 logger = logging.getLogger(__name__)
 
 
@@ -11,6 +12,7 @@ class ConfigMatcher:
     A class that can match comments, sections and options in a configuration file.
     The matcher depends on the delimiter and comment prefixe definition used in the configuration file.
     """
+
     def __init__(self, delimiters: list[str], comment_prefixes: list[str]):
         """Initialize the config matcher.
 
@@ -20,16 +22,16 @@ class ConfigMatcher:
             Delimiters used in the configuration file to separate options from values.
         comment_prefixes : list[str]
             Symbols used to indicate a comment in the configuration file.
-        """        
+        """
         self.delimiters = delimiters
         self.comment_prefixes = comment_prefixes
 
         r_delimiters = "|".join(re.escape(d) for d in self.delimiters)
         r_comment_prefixes = "".join(re.escape(p) for p in self.comment_prefixes)
 
-        self.comment_pattern = fr"^\s*([{r_comment_prefixes}])\s*(.+?)$"
-        self.section_pattern = fr"^\s*\[([^\]]+)\]\s*$" 
-        self.option_pattern = fr"^\s*(\b.+?\b)\s*?({r_delimiters})"
+        self.comment_pattern = rf"^\s*([{r_comment_prefixes}])\s*(.+?)$"
+        self.section_pattern = rf"^\s*\[([^\]]+)\]\s*$"
+        self.option_pattern = rf"^\s*(\b.+?\b)\s*?({r_delimiters})"
 
     def get_matches(self, text: str | Iterable[str]):
         """Yield comment matches found in the given text."""
@@ -87,31 +89,30 @@ class ConfigMatcher:
 
         if multiline:
             return "\n".join([line.lstrip(comment_prefixes + [" "]) for line in text.split("\n")])
-        
+
         return text.lstrip(comment_prefixes)
-        
+
     @staticmethod
     def add_prefix(text: str, prefix: str, multiline=True, add_space=True):
         """Add a comment prefix to a string."""
-        
+
         if add_space:
             prefix = prefix.strip() + " "
 
         if multiline:
             # Add prefix only if the line does not start with a comment prefix
             return "\n".join([prefix + line if not line.startswith(prefix) else line for line in text.split("\n")])
-        
+
         return prefix + text if not text.startswith(prefix) else text
 
     @staticmethod
     def is_empty(line: str) -> bool:
         return len(line.strip()) == 0
-    
+
     def is_comment(self, line: str) -> bool:
         """Return True if the line is a comment."""
         return bool(re.match(self.comment_pattern, line))
-    
-    
+
     def get_section(self, line: str) -> str | None:
         """Return the section name if the line is a section line, otherwise None."""
         match = re.match(self.section_pattern, line)
@@ -127,12 +128,10 @@ class ConfigMatcher:
         return None
 
 
-
-
 class CommentMatch:
     def __init__(self, matcher: ConfigMatcher, raw_comment: str, section: str | None, option: str | None):
         self.matcher = matcher
-        
+
         self.raw_comment = raw_comment
         """The raw comment string, including comment prefixes."""
 
@@ -141,8 +140,8 @@ class CommentMatch:
         for i, line in enumerate(lines):
             for prefix in matcher.comment_prefixes:
                 if line.startswith(prefix):
-                    lines[i] = line[len(prefix):].strip()
-            
+                    lines[i] = line[len(prefix) :].strip()
+
         self.comment: str = "\n".join(lines)
         """The comment string without comment prefixes."""
 
@@ -151,4 +150,3 @@ class CommentMatch:
 
         self.option = option
         """The option the comment is for. None if the comment is a section comment."""
-
