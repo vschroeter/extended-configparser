@@ -28,14 +28,15 @@ pip install extended-configparser@git+https://github.com/vschroeter/extended-con
 from extended_configparser.parser import ExtendedConfigParser
 
 # Load the config
-config = ExtendedConfigParser()
-config.read("myconfig.cfg")
+parser = ExtendedConfigParser()
+parser.read("myconfig.cfg")
 
 # Use the configuration as usual
 ...
 
-# Update the configuration as usual
-...
+# Set sections / options together with comments
+parser.add_section("Section.New", comment="New Section with a comment")
+parser.set("Section.New", "new_option", "new_value", comment="New value with new comment")
 
 # Access and alter the comments of a section or an option
 comment = config.get_comment("Section.A")

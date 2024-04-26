@@ -208,6 +208,14 @@ class ExtendedConfigParser(configparser.ConfigParser):
         if comment:
             self.set_comment(section, option, comment)
 
+    def add_section(self, section: str, comment: str | None = None):
+        """Add a section to the configuration.
+        Optionally set a comment for the section.
+        """
+        super().add_section(section)
+        if comment:
+            self.set_comment(section, comment=comment)
+
     #############################################################################
     ### ADDITIONAL GETTER METHODS
     #############################################################################
