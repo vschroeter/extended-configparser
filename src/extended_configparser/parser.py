@@ -148,6 +148,13 @@ class ExtendedConfigParser(configparser.ConfigParser):
             else:
                 self.set_comment(m.section, m.option, m.comment)
 
+    def __str__(self) -> str:
+        from io import StringIO
+
+        s = StringIO()
+        self.write(s)
+        return s.getvalue()
+
     #############################################################################
     ### PUBLIC METHODS
     #############################################################################
