@@ -155,6 +155,9 @@ config.write()
 Your configuration class can also be used for an interactive configuration setup.
 This is useful for the first setup of a configuration file.
 
+> [!NOTE]
+> To use the `config.inquire()` method, .you have to install the package in the cli configuration `pip install extended-configparser[cli]`.
+
 ```python
 config = MyConfig("myconfig.cfg")
 # Load the configuration if existing. If it does not exist, a new configuration file with default values is created.
