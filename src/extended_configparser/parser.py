@@ -207,10 +207,15 @@ class ExtendedConfigParser(configparser.ConfigParser):
 
         self._option_comments[section][option] = comment
 
-    def set(self, section: str, option: str, value: str | None, comment: str | None = None):
+    def set(
+        self, section: str, option: str, value: str | None, comment: str | None = None, add_section_if_missing=True
+    ):
         """Set an option in a section.
         Optionally set a comment for the option.
         """
+        if not self.has_section(section) and add_section_if_missing:
+            self.add_section(section)
+
         super().set(section, option, value)
         if comment:
             self.set_comment(section, option, comment)

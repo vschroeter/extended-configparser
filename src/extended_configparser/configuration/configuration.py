@@ -68,49 +68,24 @@ class Configuration:
             If a required option is missing and use_default_for_missing_options is False
         """
         if not os.path.exists(self.config_path):
-            logger.warning(f"Configuration file {self.config_path} not found. Creating new configuration file.")
+            logger.warning(f"Configuration file {self.config_path} not found.")
             if inquire_if_missing:
                 self.inquire()
-            self.write()
-            return
-
-        self._config_parser.read(self.config_path)
+        else:
+            self._config_parser.read(self.config_path)
 
         for entry in self.entries:
-            if entry.required and not self._config_parser.has_option(entry.section, entry.option):
-                if use_default_for_missing_options:
-                    entry.value = entry.default
-                    continue
-
-                raise ValueError(
-                    f"Required option {entry.option} not found in section {entry.section} for configuration {self.config_path}"
-                )
-            entry.value = self._config_parser.get(entry.section, entry.option, fallback=entry.default, raw=True)
+            entry.configparser = self._config_parser
+            entry.value = entry.raw_value
 
     def write(self) -> None:
         """Write the configuration to the file path."""
-        for entry in self.entries:
-            self._set_entry(entry)
-
         # Check if the directory exists
         if not os.path.exists(os.path.dirname(self.config_path)):
             os.makedirs(os.path.dirname(self.config_path))
 
         with open(self.config_path, "w") as f:
             self._config_parser.write(f)
-
-    def _set_entry(self, entry: ConfigEntry) -> None:
-        """Set the value of the entry in the configuration parser.
-
-        Parameters
-        ----------
-        entry : ConfigEntry
-            The entry to set.
-        """
-        if not self._config_parser.has_section(section=entry.section):
-            self._config_parser.add_section(section=entry.section)
-
-        self._config_parser.set(entry.section, entry.option, entry.value, entry.get_comment())
 
     def inquire(self) -> None:
         """Inquire the user for the values of the entries."""
@@ -119,8 +94,6 @@ class Configuration:
         self.load()
         for entry in self.entries:
             entry.inquire()
-            self._set_entry(entry)
+            # self._set_entry(entry)
 
-        self.write()
-        self.load()
         logger.debug("Configuration of {self.config_path} completed.")

@@ -6,9 +6,12 @@ import pathlib
 import pytest
 
 from extended_configparser.configuration.configuration import Configuration
-from extended_configparser.configuration.entries import ConfigEntry
-from extended_configparser.configuration.entries import ConfigEntryCollection
-from extended_configparser.configuration.entries import ConfigSection
+from extended_configparser.configuration.entries.base import ConfigEntry
+from extended_configparser.configuration.entries.base import ConfigEntryCollection
+from extended_configparser.configuration.entries.base import ConfigSection
+from extended_configparser.configuration.entries.confirmation import (
+    ConfigConfirmationEntry,
+)
 
 
 class MainConfigPaths(ConfigEntryCollection):
@@ -30,6 +33,8 @@ class MainConfig(Configuration):
         super().__init__(path)
         self.paths = MainConfigPaths()
         self.test = ConfigEntry("Test", "Foo", "Bla", "Test entry")
+
+        self.confirmation = ConfigConfirmationEntry("Test", "Confirmation", False, "Test confirmation entry")
 
 
 # TODO: Automate the input for testing. Currently it is manual.
@@ -57,9 +62,17 @@ sub_dir = ${Dirs:data_root_dir}/subdir/
 [Test]
 # Test entry
 foo = Bla
+# Test confirmation entry
+confirmation = Yes
 """
     assert content.strip() == s.strip()
 
 
 if __name__ == "__main__":
-    inquire(pathlib.Path(__file__).parent / "tmp")
+    path = pathlib.Path(__file__).parent / "tmp"
+    # If path exists, delete all files in the dir
+    if path.exists():
+        for f in path.iterdir():
+            f.unlink()
+
+    inquire(path)
