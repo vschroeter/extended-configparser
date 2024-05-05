@@ -17,7 +17,7 @@ from extended_configparser.configuration.entries.confirmation import (
 class MainConfigPaths(ConfigEntryCollection):
     def __init__(self):
         section = ConfigSection("Dirs")
-        self.data_root_dir = section.ConfigOption(
+        self.data_root_dir = section.Option(
             "data_root_dir",
             r"${HOME}/test/",
             "Root directory for all data",
@@ -25,7 +25,7 @@ class MainConfigPaths(ConfigEntryCollection):
         )
 
         subdir_section = ConfigSection("Subdirs")
-        self.sub_dir = subdir_section.ConfigOption("sub_dir", r"${Dirs:data_root_dir}/subdir/", "Main subdirectory.")
+        self.sub_dir = subdir_section.Option("sub_dir", r"${Dirs:data_root_dir}/subdir/", "Main subdirectory.")
 
 
 class MainConfig(Configuration):

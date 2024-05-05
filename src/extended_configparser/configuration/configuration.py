@@ -53,14 +53,14 @@ class Configuration:
 
         return self._entries
 
-    def load(self, use_default_for_missing_options: bool = True, inquire_if_missing: bool = False) -> None:
+    def load(self, inquire_if_missing: bool = False) -> None:
         """Load the configuration file and set the values of the entries.
 
 
         Parameters
         ----------
-        use_default_for_missing_options : bool, optional
-            If True, a missing option in the read configfile will be set to its default. Otherwise, raise a ValueError. By default True
+        inquire_if_missing : bool, optional
+            If True, the user will be asked to provide the values for the configuration entries.
 
         Raises
         ------
@@ -96,4 +96,4 @@ class Configuration:
             entry.inquire()
             # self._set_entry(entry)
 
-        logger.debug("Configuration of {self.config_path} completed.")
+        logger.debug(f"Configuration of {self.config_path} completed.")

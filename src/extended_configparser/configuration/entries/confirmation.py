@@ -7,6 +7,7 @@ from extended_configparser.configuration.entries.base import ConfigEntry
 
 logger = logging.getLogger(__name__)
 
+
 class ConfigConfirmationEntry(ConfigEntry):
     """
     Represents a single confirmation configuration entry (yes/no).
@@ -18,6 +19,7 @@ class ConfigConfirmationEntry(ConfigEntry):
         option: str,
         default: bool,
         message: str,
+        inquire: bool = True,
         **inquirer_kwargs,
     ) -> None:
         """Create a new ConfigEntryConfirmation.
@@ -38,7 +40,7 @@ class ConfigConfirmationEntry(ConfigEntry):
             option=option,
             default=default,
             message=message,
-            inquire=True,
+            inquire=inquire,
             **inquirer_kwargs,
         )
 
@@ -56,42 +58,41 @@ class ConfigConfirmationEntry(ConfigEntry):
             default=(self.to_bool(self.value) if use_existing_as_default else self.default),
             **self.inquirer_kwargs,
         ).execute()
-        
+
     @staticmethod
-    def to_bool(value: Any):        
-        """ Transform values to boolean. """ 
-        
+    def to_bool(value: Any):
+        """Transform values to boolean."""
+
         if value is None:
             return False
-        
+
         if isinstance(value, bool):
             return value
-        
+
         if isinstance(value, int):
             if value > 0:
                 return True
-        
+
         if isinstance(value, str):
             v = value.lower()
             if v == "true" or v == "yes" or v == "1":
                 return True
-            
+
             return False
-        
+
         try:
-            return bool(value)               
+            return bool(value)
         except:
-            return False    
-    
+            return False
+
     @staticmethod
     def get_bool_str(value: bool) -> str:
         return "Yes" if value else "No"
-    
+
     @property
     def value(self):
         return self.to_bool(self.get_value())
-    
+
     @value.setter
     def value(self, value: Any):
         self.set_value(self.get_bool_str(self.to_bool(value)))
-        

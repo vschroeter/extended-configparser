@@ -160,7 +160,7 @@ This is useful for the first setup of a configuration file.
 
 ```python
 config = MyConfig("myconfig.cfg")
-# Load the configuration if existing. If it does not exist, a new configuration file with default values is created.
+# Load the configuration if existing.
 config.load()
 # Inquire the user for the configuration values
 # Each ConfigEntry will be asked for its value
@@ -181,20 +181,20 @@ Interpolation of environment variables and other section values is supported by 
 class MainConfigPaths(ConfigEntryCollection):
     def __init__(self):
         section = ConfigSection("Dirs")
-        self.data_root_dir = section.ConfigOption(
+        self.data_root_dir = section.Option(
             "data_root_dir",
             r"${HOME}/data/",
             "Root directory for all data",
             long_instruction="The subdirectories defined in [Subdirs] will be created in this directory, except you define them as absolute paths.",
         )
-        self.app_data_dir = section.ConfigOption(
+        self.app_data_dir = section.Option(
             "app_data_dir",
             r"/opt/app/data/",
             "Directory for application data from the app.",
         )
 
         subdir_section = ConfigSection("Subdirs")
-        self.cache_dir = subdir_section.ConfigOption(
+        self.cache_dir = subdir_section.Option(
             "cache_dir",
             r"${Dirs:data_root_dir}/cache/",
             "Main directory for cache files, e.g. for the discovering process.",
