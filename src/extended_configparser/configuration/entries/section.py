@@ -3,8 +3,9 @@ from __future__ import annotations
 import logging
 
 from extended_configparser.configuration.entries.base import ConfigEntry
-from extended_configparser.configuration.entries.confirmation import ConfigConfirmationEntry
-
+from extended_configparser.configuration.entries.confirmation import (
+    ConfigConfirmationEntry,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ class ConfigSection:
         **inquirer_kwargs,
     ) -> ConfigConfirmationEntry:
         """Create a ConfigConfirmationEntry for that section with the given parameters."""
-        
+
         return ConfigConfirmationEntry(
             section=self.name,
             option=option,

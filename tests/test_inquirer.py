@@ -8,10 +8,11 @@ import pytest
 from extended_configparser.configuration.configuration import Configuration
 from extended_configparser.configuration.entries.base import ConfigEntry
 from extended_configparser.configuration.entries.base import ConfigEntryCollection
-from extended_configparser.configuration.entries.base import ConfigSection
 from extended_configparser.configuration.entries.confirmation import (
     ConfigConfirmationEntry,
 )
+from extended_configparser.configuration.entries.section import ConfigSection
+from extended_configparser.configuration.entries.selection import ConfigSelectionEntry
 
 
 class MainConfigPaths(ConfigEntryCollection):
@@ -35,6 +36,16 @@ class MainConfig(Configuration):
         self.test = ConfigEntry("Test", "Foo", "Bla", "Test entry")
 
         self.confirmation = ConfigConfirmationEntry("Test", "Confirmation", False, "Test confirmation entry")
+
+        self.selection = ConfigSelectionEntry(
+            "Test",
+            "Selection",
+            ["b"],
+            "Test selection entry",
+            choices=["a", "b", "c"],
+            multiselect=True,
+            delimiter=",\n",
+        )
 
 
 # TODO: Automate the input for testing. Currently it is manual.
@@ -64,6 +75,10 @@ sub_dir = ${Dirs:data_root_dir}/subdir/
 foo = Bla
 # Test confirmation entry
 confirmation = Yes
+# Test selection entry
+selection = a,
+        b,
+        c
 """
     assert content.strip() == s.strip()
 

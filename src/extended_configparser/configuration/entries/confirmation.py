@@ -22,7 +22,7 @@ class ConfigConfirmationEntry(ConfigEntry):
         inquire: bool = True,
         **inquirer_kwargs,
     ) -> None:
-        """Create a new ConfigEntryConfirmation.
+        """Create a new ConfigConfirmationEntry.
 
         Parameters
         ----------
