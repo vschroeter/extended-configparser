@@ -53,7 +53,7 @@ class Configuration:
 
         return self._entries
 
-    def load(self, inquire_if_missing: bool = False) -> None:
+    def load(self, inquire_if_missing: bool = False, quiet: bool = False) -> None:
         """Load the configuration file and set the values of the entries.
 
 
@@ -61,6 +61,8 @@ class Configuration:
         ----------
         inquire_if_missing : bool, optional
             If True, the user will be asked to provide the values for the configuration entries.
+        quiet : bool, optional
+            If True, no warning will be printed if the configuration file is missing.
 
         Raises
         ------
@@ -68,7 +70,8 @@ class Configuration:
             If a required option is missing and use_default_for_missing_options is False
         """
         if not os.path.exists(self.config_path):
-            logger.warning(f"Configuration file {self.config_path} not found.")
+            if not quiet:
+                logger.warning(f"Configuration file {self.config_path} not found.")
             if inquire_if_missing:
                 self.inquire()
         else:
@@ -91,7 +94,7 @@ class Configuration:
         """Inquire the user for the values of the entries."""
 
         logger.debug(f"Configuring @ {self.config_path}")
-        self.load()
+        self.load(quiet=True)
         for entry in self.entries:
             entry.inquire()
             # self._set_entry(entry)

@@ -4,6 +4,7 @@ import logging
 import re
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Callable
 
 if TYPE_CHECKING:
     from extended_configparser import ExtendedConfigParser
@@ -12,6 +13,9 @@ if TYPE_CHECKING:
     )
 
 logger = logging.getLogger(__name__)
+
+# Type alias for bool or callable
+InquireCondition = bool | Callable[[], bool]
 
 
 class ConfigEntryCollection:
@@ -36,7 +40,7 @@ class ConfigEntry:
         option: str,
         default: Any,
         message: str,
-        inquire: bool = True,
+        inquire: InquireCondition = True,
         **inquirer_kwargs,
     ) -> None:
         """Create a new ConfigEntry.
@@ -78,7 +82,7 @@ class ConfigEntry:
         self.inquirer_kwargs = inquirer_kwargs
         """Additional kwargs to be passed to the inquirer prompt"""
 
-        self.do_inquire = inquire
+        self._do_inquire = inquire
         """Set to True if the entry should be inquired to the user"""
 
         if "qmark" not in self.inquirer_kwargs:
@@ -108,11 +112,11 @@ class ConfigEntry:
         return self.get_value(True)
 
     @property
-    def value(self):
+    def value(self) -> str:
         return self.get_value(False)
 
     @value.setter
-    def value(self, value: str):
+    def value(self, value: str) -> None:
         self.set_value(value)
 
     def __str__(self) -> str:
@@ -131,6 +135,14 @@ class ConfigEntry:
         msg = msg.strip(strip) + end
         return msg
 
+    def do_inquire(self) -> bool:
+        if isinstance(self._do_inquire, bool):
+            return self._do_inquire
+        elif callable(self._do_inquire):
+            return self._do_inquire()
+
+        return False
+
     def inquire(self, use_existing_as_default: bool = True) -> None:
         """Inquire the user for the value of this entry.
 
@@ -140,7 +152,7 @@ class ConfigEntry:
             If True, the existing value of a config is taken as default value when asking the user, otherwise take the given default value, by default True
         """
 
-        if not self.do_inquire:
+        if not self.do_inquire():
             return
 
         from InquirerPy import inquirer

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 from typing import TYPE_CHECKING
+from typing import Any
 
 from extended_configparser.configuration.entries.base import ConfigEntry
-
+from extended_configparser.configuration.entries.base import InquireCondition
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class ConfigSelectionEntry(ConfigEntry):
         option: str,
         default: list[str],
         message: str,
-        inquire: bool = True,
+        inquire: InquireCondition = True,
         choices: list[str] = [],
         multiselect: bool = False,
         delimiter: str = ", ",
@@ -79,11 +79,14 @@ class ConfigSelectionEntry(ConfigEntry):
             kwargs["long_instruction"] = "Use <tab> to de/select values and <enter> to confirm."
 
         result = inquirer.select(
-            message=msg, choices=choices, multiselect=self.multiselect, default=None, **self.inquirer_kwargs,
+            message=msg,
+            choices=choices,
+            multiselect=self.multiselect,
+            default=None,
+            **self.inquirer_kwargs,
         ).execute()
 
         self.value = result
-
 
     @staticmethod
     def list_to_string(values: list[str], delimiter: str = ", ") -> str:
@@ -96,7 +99,6 @@ class ConfigSelectionEntry(ConfigEntry):
         if value is None or value == "":
             return []
         return [v.strip() for v in value.split(delimiter)]
-
 
     @property
     def value(self) -> list[str]:

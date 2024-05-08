@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 from extended_configparser.configuration.entries.base import ConfigEntry
+from extended_configparser.configuration.entries.base import InquireCondition
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class ConfigConfirmationEntry(ConfigEntry):
         option: str,
         default: bool,
         message: str,
-        inquire: bool = True,
+        inquire: InquireCondition = True,
         **inquirer_kwargs,
     ) -> None:
         """Create a new ConfigConfirmationEntry.
@@ -47,7 +48,7 @@ class ConfigConfirmationEntry(ConfigEntry):
     def inquire(self, use_existing_as_default: bool = True) -> None:
         """Inquire the user for the value of this entry."""
 
-        if not self.do_inquire:
+        if not self.do_inquire():
             return
 
         from InquirerPy import inquirer

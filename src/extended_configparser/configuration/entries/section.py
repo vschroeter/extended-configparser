@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 from extended_configparser.configuration.entries.base import ConfigEntry
+from extended_configparser.configuration.entries.base import InquireCondition
 from extended_configparser.configuration.entries.confirmation import (
     ConfigConfirmationEntry,
 )
@@ -24,7 +25,7 @@ class ConfigSection:
         option: str,
         default: str,
         message: str,
-        inquire: bool = True,
+        inquire: InquireCondition = True,
         **inquirer_kwargs,
     ) -> ConfigEntry:
         """Create a ConfigEntry for that section with the given parameters."""
@@ -40,9 +41,9 @@ class ConfigSection:
     def ConfirmationOption(
         self,
         option: str,
-        default: str,
+        default: bool,
         message: str,
-        inquire: bool = True,
+        inquire: InquireCondition = True,
         **inquirer_kwargs,
     ) -> ConfigConfirmationEntry:
         """Create a ConfigConfirmationEntry for that section with the given parameters."""
