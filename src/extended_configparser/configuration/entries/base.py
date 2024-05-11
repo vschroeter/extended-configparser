@@ -42,12 +42,12 @@ class ConfigEntry(Generic[T]):
         self,
         section: str,
         option: str,
-        default: str,
+        default: T | str,
         message: str,
         inquire: InquireCondition = True,
         is_dir: bool = False,
         value_getter: Callable[[str], T] = lambda x: x,
-        value_setter: Callable[[T], str] = lambda x: str(x),
+        value_setter: Callable[[T | str], str] = lambda x: str(x),
         **inquirer_kwargs,
     ) -> None:
         """Create a new ConfigEntry.
@@ -80,7 +80,7 @@ class ConfigEntry(Generic[T]):
         self.option = self.escape_whitespace(option)
         """Option of the entry"""
 
-        self.default = default
+        self.default = value_setter(default)
         """Default value of the entry"""
 
         self.message = message

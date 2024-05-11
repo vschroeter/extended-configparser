@@ -9,6 +9,7 @@ from extended_configparser.configuration.entries.base import InquireCondition
 from extended_configparser.configuration.entries.confirmation import (
     ConfigConfirmationEntry,
 )
+from extended_configparser.configuration.entries.selection import ConfigSelectionEntry
 
 logger = logging.getLogger(__name__)
 
@@ -28,24 +29,24 @@ class ConfigSection:
     def Option(
         self,
         option: str,
-        default: str,
+        default: S | str,
         message: str,
         inquire: InquireCondition = True,
         is_dir: bool = False,
         value_getter: Callable[[str], S] = lambda x: x,
-        value_transformer: Callable[[S], str] = lambda x: str(x),
+        value_setter: Callable[[S | str], str] = lambda x: str(x),
         **inquirer_kwargs,
     ) -> ConfigEntry[S]:
         """Create a ConfigEntry for that section with the given parameters."""
         return ConfigEntry[S](
             section=self.name,
             option=option,
-            default=default,
+            default=value_setter(default),
             message=message,
             inquire=inquire,
             is_dir=is_dir,
             value_getter=value_getter,
-            value_transformer=value_transformer,
+            value_setter=value_setter,
             **inquirer_kwargs,
         )
 
@@ -65,5 +66,30 @@ class ConfigSection:
             default=default,
             message=message,
             inquire=inquire,
+            **inquirer_kwargs,
+        )
+
+    def SelectionOption(
+        self,
+        section: str,
+        option: str,
+        default: list[str],
+        message: str,
+        inquire: InquireCondition = True,
+        choices: list[str] = [],
+        multiselect: bool = False,
+        delimiter: str = ", ",
+        **inquirer_kwargs,
+    ) -> ConfigSelectionEntry:
+        """Create a ConfigEntry for that section with the given parameters."""
+        return ConfigSelectionEntry(
+            section=section,
+            option=option,
+            default=default,
+            message=message,
+            inquire=inquire,
+            choices=choices,
+            multiselect=multiselect,
+            delimiter=delimiter,
             **inquirer_kwargs,
         )
