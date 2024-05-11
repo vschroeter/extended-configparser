@@ -9,7 +9,7 @@ from extended_configparser.configuration.entries.base import InquireCondition
 logger = logging.getLogger(__name__)
 
 
-class ConfigConfirmationEntry(ConfigEntry):
+class ConfigConfirmationEntry(ConfigEntry[bool]):
     """
     Represents a single confirmation configuration entry (yes/no).
     """
@@ -35,13 +35,17 @@ class ConfigConfirmationEntry(ConfigEntry):
             Default value.
         message : str
             Message to be asked to the user for configurating this entry.
+        inquire : InquireCondition, optional
+            Whether to inquire the user for the value of this entry.
         """
         super().__init__(
             section=section,
             option=option,
-            default=default,
+            default=self.get_bool_str(default),
             message=message,
             inquire=inquire,
+            value_getter=self.to_bool,
+            value_setter=self.get_bool_str,
             **inquirer_kwargs,
         )
 
@@ -89,11 +93,3 @@ class ConfigConfirmationEntry(ConfigEntry):
     @staticmethod
     def get_bool_str(value: bool) -> str:
         return "Yes" if value else "No"
-
-    @property
-    def value(self):
-        return self.to_bool(self.get_value())
-
-    @value.setter
-    def value(self, value: Any):
-        self.set_value(self.get_bool_str(self.to_bool(value)))

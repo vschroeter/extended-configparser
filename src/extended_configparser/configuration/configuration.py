@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 from configparser import Interpolation
+from configparser import SectionProxy
 
 from extended_configparser.configuration.entries import ConfigEntry
 from extended_configparser.configuration.entries import ConfigEntryCollection
@@ -21,9 +22,11 @@ class Configuration:
     With `inqure()` the user will be asked to provide the values for the defined entries.
     """
 
-    def __init__(self, path: str, interpolation: Interpolation = EnvInterpolation()) -> None:
+    def __init__(
+        self, path: str, interpolation: Interpolation = EnvInterpolation(), base_paths: list[str] | None = None
+    ) -> None:
         self.config_path = path
-
+        self.base_paths = base_paths or []
         self._entries: list[ConfigEntry] = []
         self._config_parser = ExtendedConfigParser(interpolation=interpolation)
 
@@ -69,6 +72,14 @@ class Configuration:
         ValueError
             If a required option is missing and use_default_for_missing_options is False
         """
+
+        for base_path in self.base_paths:
+            if not os.path.exists(base_path):
+                logger.warning(f"Base configuration file {base_path} not found.")
+                continue
+
+            self._config_parser.read(base_path)
+
         if not os.path.exists(self.config_path):
             if not quiet:
                 logger.warning(f"Configuration file {self.config_path} not found.")
@@ -90,13 +101,17 @@ class Configuration:
         with open(self.config_path, "w") as f:
             self._config_parser.write(f)
 
-    def inquire(self) -> None:
+    def inquire(self, use_existing_values: bool = True) -> None:
         """Inquire the user for the values of the entries."""
 
         logger.debug(f"Configuring @ {self.config_path}")
         self.load(quiet=True)
         for entry in self.entries:
-            entry.inquire()
+            entry.inquire(use_existing_values)
             # self._set_entry(entry)
 
         logger.debug(f"Configuration of {self.config_path} completed.")
+
+    def __getitem__(self, key: str) -> SectionProxy:
+        """Returns the section with the given key."""
+        return self._config_parser[key]

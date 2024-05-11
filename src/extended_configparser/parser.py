@@ -233,10 +233,21 @@ class ExtendedConfigParser(configparser.ConfigParser):
     #############################################################################
 
     @staticmethod
-    def split_to_list(list_str: str, delimiter: str = ",") -> list[str]:
+    def split_to_list(list_str: str, delimiter: str = ",", remove_brackets=["[]"]) -> list[str]:
         if list_str is None or list_str == "":
             return []
+
+        for bracket in remove_brackets:
+            list_str = list_str.lstrip(bracket).rstrip(bracket)
+
         return [i.strip() for i in list_str.split(delimiter)]
+
+    @staticmethod
+    def list_to_str(list: list[str], delimiter: str = ",", brackets: str = "[]") -> str:
+        s = delimiter.join(list)
+        if brackets and len(brackets) == 2:
+            s = brackets[0] + s + brackets[1]
+        return s
 
     def get_list(self, section: str, option: str, delimiter: str = ",", fallback: Any = None) -> list[str]:
         """Get a list from a configuration option.

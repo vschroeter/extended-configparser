@@ -10,7 +10,7 @@ from extended_configparser.configuration.entries.base import InquireCondition
 logger = logging.getLogger(__name__)
 
 
-class ConfigSelectionEntry(ConfigEntry):
+class ConfigSelectionEntry(ConfigEntry[str]):
     """
     Represents a selection configuration entry with a list of selectable options.
     """
@@ -51,7 +51,7 @@ class ConfigSelectionEntry(ConfigEntry):
         super().__init__(
             section=section,
             option=option,
-            default=default,
+            default=self.list_to_string(default),
             message=message,
             inquire=inquire,
             **inquirer_kwargs,

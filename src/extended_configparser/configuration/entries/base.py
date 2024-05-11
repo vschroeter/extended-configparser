@@ -5,6 +5,8 @@ import re
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
+from typing import Generic
+from typing import TypeVar
 
 if TYPE_CHECKING:
     from extended_configparser import ExtendedConfigParser
@@ -16,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 # Type alias for bool or callable
 InquireCondition = bool | Callable[[], bool]
+
+T = TypeVar("T")
 
 
 class ConfigEntryCollection:
@@ -29,7 +33,7 @@ class ConfigEntryCollection:
     pass
 
 
-class ConfigEntry:
+class ConfigEntry(Generic[T]):
     """
     Represents a single configuration entry.
     """
@@ -38,9 +42,12 @@ class ConfigEntry:
         self,
         section: str,
         option: str,
-        default: Any,
+        default: str,
         message: str,
         inquire: InquireCondition = True,
+        is_dir: bool = False,
+        value_getter: Callable[[str], T] = lambda x: x,
+        value_setter: Callable[[T], str] = lambda x: str(x),
         **inquirer_kwargs,
     ) -> None:
         """Create a new ConfigEntry.
@@ -53,13 +60,18 @@ class ConfigEntry:
             Section name.
         option : str
             Option name.
-        default : str
+        default : T
             Default value.
         message : str
             Message to be asked to the user for configurating this entry.
         inquire : bool, optional
             If the entry should be inquired to the user, by default True
-
+        is_dir : bool, optional
+            If the value is a dir path. If True, the directory of the path will be created when fetching the value if it does not exist.
+        value_getter : Callable[[str], T], optional
+            A function to transform the string entry value to your desired type
+        value_setter : Callable[[T], str], optional
+            A function to transform your logical value to the config string
         """
 
         self.section = self.escape_whitespace(section)
@@ -85,6 +97,15 @@ class ConfigEntry:
         self._do_inquire = inquire
         """Set to True if the entry should be inquired to the user"""
 
+        self.is_dir = is_dir
+        """If the value is a dir. If True, the directory of the path will be created when fetching the value if it does not exist."""
+
+        self.value_transformer = value_getter
+        """A function to transform the string entry value to your desired type"""
+
+        self.value_setter = value_setter
+        """A function to transform your logical value to the config string"""
+
         if "qmark" not in self.inquirer_kwargs:
             self.inquirer_kwargs["qmark"] = "?"
 
@@ -101,22 +122,43 @@ class ConfigEntry:
 
         return self.configparser.get(self.section, self.option, fallback=self.default, raw=raw)
 
-    def set_value(self, value: str):
+    def set_value(self, value: T):
         if self.configparser is None:
             raise ValueError("ConfigParser is not set.")
 
-        self.configparser.set(self.section, self.option, value, self.get_comment())
+        v = self.value_setter(value)
+        self.configparser.set(self.section, self.option, v, self.get_comment())
 
     @property
     def raw_value(self) -> str:
         return self.get_value(True)
 
     @property
-    def value(self) -> str:
-        return self.get_value(False)
+    def value(self) -> T:
+        v = self.get_value(False)
+        if self.is_dir:
+            from pathlib import Path
+
+            p = Path(v)
+
+            # TODO: Make this OS independent
+            if p.is_absolute() or any(v.startswith(b) for b in ("./", "../", "~/")):
+                # if not p.parent.exists():
+                #     p.parent.mkdir(parents=True)
+                if not p.exists():
+                    try:
+                        p.mkdir(parents=True)
+                    except Exception as e:
+                        logger.warning(f"Failed to create directory {p}: {e}")
+
+                v = str(p)
+
+        # if self.value_transformer:
+        v = self.value_transformer(v)
+        return v
 
     @value.setter
-    def value(self, value: str) -> None:
+    def value(self, value: T) -> None:
         self.set_value(value)
 
     def __str__(self) -> str:
