@@ -10,6 +10,7 @@ from typing import TypeVar
 
 if TYPE_CHECKING:
     from extended_configparser import ExtendedConfigParser
+    from extended_configparser.configuration.configuration import Configuration
     from extended_configparser.configuration.entries.confirmation import (
         ConfigConfirmationEntry,
     )
@@ -88,6 +89,9 @@ class ConfigEntry(Generic[T]):
 
         # self.required = required
 
+        self.configuration: Configuration | None = None
+        """Reference to the source configuration"""
+
         self.configparser: ExtendedConfigParser | None = None
         """The ConfigParser instance to read and write the configuration"""
 
@@ -128,6 +132,9 @@ class ConfigEntry(Generic[T]):
 
         v = self.value_setter(value)
         self.configparser.set(self.section, self.option, v, self.get_comment())
+
+        if self.configuration is not None and self.configuration.auto_save:
+            self.configuration.write()
 
     @property
     def raw_value(self) -> str:

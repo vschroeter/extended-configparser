@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import logging
 import os
 from configparser import Interpolation
@@ -23,8 +24,13 @@ class Configuration:
     """
 
     def __init__(
-        self, path: str, interpolation: Interpolation = EnvInterpolation(), base_paths: list[str] | None = None
+        self,
+        path: str,
+        interpolation: Interpolation = EnvInterpolation(),
+        base_paths: list[str] | None = None,
+        auto_save: bool = False,
     ) -> None:
+        self.auto_save = auto_save
         self.config_path = path
         self.base_paths = base_paths or []
         self._entries: list[ConfigEntry] = []
@@ -88,9 +94,15 @@ class Configuration:
         else:
             self._config_parser.read(self.config_path)
 
+        auto_save = self.auto_save
+        self.auto_save = False
+
         for entry in self.entries:
             entry.configparser = self._config_parser
+            entry.configuration = self
             entry.value = entry.raw_value
+
+        self.auto_save = auto_save
 
     def write(self) -> None:
         """Write the configuration to the file path."""
@@ -98,8 +110,16 @@ class Configuration:
         if not os.path.exists(os.path.dirname(self.config_path)):
             os.makedirs(os.path.dirname(self.config_path))
 
-        with open(self.config_path, "w") as f:
-            self._config_parser.write(f)
+        # We cannot just write the config file, as there could be base configs, whose content should not appear in this config.
+        parser = ExtendedConfigParser()
+        if os.path.exists(self.config_path):
+            parser.read(self.config_path)
+        for entry in self.entries:
+            parser.set(entry.section, entry.option, entry.raw_value, entry.get_comment())
+
+        with io.open(self.config_path, "w") as f:
+            # self._config_parser.write(f)
+            parser.write(f)
 
     def inquire(self, use_existing_values: bool = True) -> None:
         """Inquire the user for the values of the entries."""

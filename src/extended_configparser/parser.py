@@ -243,7 +243,9 @@ class ExtendedConfigParser(configparser.ConfigParser):
         return [i.strip() for i in list_str.split(delimiter)]
 
     @staticmethod
-    def list_to_str(list: list[str], delimiter: str = ",", brackets: str = "[]") -> str:
+    def list_to_str(list: list[str] | str, delimiter: str = ",", brackets: str = "[]") -> str:
+        if isinstance(list, str):
+            return list
         s = delimiter.join(list)
         if brackets and len(brackets) == 2:
             s = brackets[0] + s + brackets[1]
