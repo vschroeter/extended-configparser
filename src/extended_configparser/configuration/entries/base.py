@@ -154,7 +154,7 @@ class ConfigEntry(Generic[T]):
                 #     p.parent.mkdir(parents=True)
                 if not p.exists():
                     try:
-                        p.mkdir(parents=True)
+                        p.mkdir(parents=True, exist_ok=True)
                     except Exception as e:
                         logger.warning(f"Failed to create directory {p}: {e}")
 
