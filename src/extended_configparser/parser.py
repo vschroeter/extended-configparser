@@ -12,7 +12,12 @@ from extended_configparser.matcher import ConfigMatcher
 
 
 class ExtendedConfigParser(configparser.ConfigParser):
-    """ConfigParser that can write comments to a file."""
+    """
+    ConfigParser that can read from and write comments to a file.
+
+    Use get_comment(section, option) and set_comment(section, option, comment) to get and set comments
+    or use it directly when setting values with set(section, option, value, comment).
+    """
 
     def __init__(
         self,
@@ -48,8 +53,8 @@ class ExtendedConfigParser(configparser.ConfigParser):
 
         self.top_comment = None
         self.end_comment = None
-        self._option_comments: dict[str, dict[str, str]] = {}
-        self._section_comments: dict[str, str] = {}
+        self._option_comments: dict[str, dict[str, str | None]] = {}
+        self._section_comments: dict[str, str | None] = {}
         self._delimiters = delimiters
         self._comment_prefixes = comment_prefixes
 
@@ -117,7 +122,8 @@ class ExtendedConfigParser(configparser.ConfigParser):
         """Write a single section to the specified `fp`."""
         if section_name in self._section_comments:
             comment = self._section_comments[section_name]
-            fp.write(ConfigMatcher.add_prefix(comment, self._comment_prefixes[0]) + "\n")
+            if comment is not None:
+                fp.write(ConfigMatcher.add_prefix(comment, self._comment_prefixes[0]) + "\n")
 
         fp.write("[{}]\n".format(section_name))
         for key, value in section_items:
@@ -134,6 +140,7 @@ class ExtendedConfigParser(configparser.ConfigParser):
         fp.write("\n")
 
     def _parse_comments(self, text: str | Iterable[str]) -> None:
+        """Internal function to parse comments from the content string of a file."""
 
         matcher = ConfigMatcher(self._delimiters, self._comment_prefixes)
         matches = list(matcher.get_matches(text))
@@ -148,11 +155,18 @@ class ExtendedConfigParser(configparser.ConfigParser):
             else:
                 self.set_comment(m.section, m.option, m.comment)
 
+    def __str__(self) -> str:
+        from io import StringIO
+
+        s = StringIO()
+        self.write(s)
+        return s.getvalue()
+
     #############################################################################
     ### PUBLIC METHODS
     #############################################################################
 
-    def get_comment(self, section: str, option: str | None = None) -> str:
+    def get_comment(self, section: str, option: str | None = None) -> str | None:
         """Return the comment for a section or option.
 
         Parameters
@@ -163,11 +177,11 @@ class ExtendedConfigParser(configparser.ConfigParser):
             Option name. If None, the comment for the section is returned.
         Returns
         -------
-        str
+        str | None
             The comment for the section or option.
         """
         if option is None:
-            return self._section_comments.get(section, "")
+            return self._section_comments.get(section, None)
 
         option = option.lower()
         return self._option_comments.get(section, {}).get(option, "")
@@ -200,10 +214,15 @@ class ExtendedConfigParser(configparser.ConfigParser):
 
         self._option_comments[section][option] = comment
 
-    def set(self, section: str, option: str, value: str | None, comment: str | None = None):
+    def set(
+        self, section: str, option: str, value: str | None, comment: str | None = None, add_section_if_missing=True
+    ):
         """Set an option in a section.
         Optionally set a comment for the option.
         """
+        if not self.has_section(section) and add_section_if_missing:
+            self.add_section(section)
+
         super().set(section, option, value)
         if comment:
             self.set_comment(section, option, comment)
@@ -221,10 +240,23 @@ class ExtendedConfigParser(configparser.ConfigParser):
     #############################################################################
 
     @staticmethod
-    def split_to_list(list_str: str, delimiter: str = ",") -> list[str]:
+    def split_to_list(list_str: str, delimiter: str = ",", remove_brackets=["[]"]) -> list[str]:
         if list_str is None or list_str == "":
             return []
+
+        for bracket in remove_brackets:
+            list_str = list_str.lstrip(bracket).rstrip(bracket)
+
         return [i.strip() for i in list_str.split(delimiter)]
+
+    @staticmethod
+    def list_to_str(list: list[str] | str, delimiter: str = ",", brackets: str = "[]") -> str:
+        if isinstance(list, str):
+            return list
+        s = delimiter.join(list)
+        if brackets and len(brackets) == 2:
+            s = brackets[0] + s + brackets[1]
+        return s
 
     def get_list(self, section: str, option: str, delimiter: str = ",", fallback: Any = None) -> list[str]:
         """Get a list from a configuration option.
@@ -251,7 +283,7 @@ class ExtendedConfigParser(configparser.ConfigParser):
         return self.split_to_list(v, delimiter)
 
     def get_abs_path(
-        self, option: str, section: str, root_dir: str | None = None, create_dir: bool = False, fallbac: Any = None
+        self, option: str, section: str, root_dir: str | None = None, create_dir: bool = False, fallback: Any = None
     ) -> str | None:
         """Get an absolute path from a configuration option.
 

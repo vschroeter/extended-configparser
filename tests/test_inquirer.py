@@ -6,15 +6,19 @@ import pathlib
 import pytest
 
 from extended_configparser.configuration.configuration import Configuration
-from extended_configparser.configuration.entries import ConfigEntry
-from extended_configparser.configuration.entries import ConfigEntryCollection
-from extended_configparser.configuration.entries import ConfigSection
+from extended_configparser.configuration.entries.base import ConfigEntry
+from extended_configparser.configuration.entries.base import ConfigEntryCollection
+from extended_configparser.configuration.entries.confirmation import (
+    ConfigConfirmationEntry,
+)
+from extended_configparser.configuration.entries.section import ConfigSection
+from extended_configparser.configuration.entries.selection import ConfigSelectionEntry
 
 
 class MainConfigPaths(ConfigEntryCollection):
     def __init__(self):
         section = ConfigSection("Dirs")
-        self.data_root_dir = section.ConfigOption(
+        self.data_root_dir = section.Option(
             "data_root_dir",
             r"${HOME}/test/",
             "Root directory for all data",
@@ -22,7 +26,7 @@ class MainConfigPaths(ConfigEntryCollection):
         )
 
         subdir_section = ConfigSection("Subdirs")
-        self.sub_dir = subdir_section.ConfigOption("sub_dir", r"${Dirs:data_root_dir}/subdir/", "Main subdirectory.")
+        self.sub_dir = subdir_section.Option("sub_dir", r"${Dirs:data_root_dir}/subdir/", "Main subdirectory.")
 
 
 class MainConfig(Configuration):
@@ -30,6 +34,18 @@ class MainConfig(Configuration):
         super().__init__(path)
         self.paths = MainConfigPaths()
         self.test = ConfigEntry("Test", "Foo", "Bla", "Test entry")
+
+        self.confirmation = ConfigConfirmationEntry("Test", "Confirmation", False, "Test confirmation entry")
+
+        self.selection = ConfigSelectionEntry(
+            "Test",
+            "Selection",
+            ["b"],
+            "Test selection entry",
+            choices=["a", "b", "c"],
+            multiselect=True,
+            delimiter=",\n",
+        )
 
 
 # TODO: Automate the input for testing. Currently it is manual.
@@ -57,9 +73,21 @@ sub_dir = ${Dirs:data_root_dir}/subdir/
 [Test]
 # Test entry
 foo = Bla
+# Test confirmation entry
+confirmation = Yes
+# Test selection entry
+selection = a,
+        b,
+        c
 """
     assert content.strip() == s.strip()
 
 
 if __name__ == "__main__":
-    inquire(pathlib.Path(__file__).parent / "tmp")
+    path = pathlib.Path(__file__).parent / "tmp"
+    # If path exists, delete all files in the dir
+    if path.exists():
+        for f in path.iterdir():
+            f.unlink()
+
+    inquire(path)
