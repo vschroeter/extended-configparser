@@ -180,39 +180,72 @@ Interpolation of environment variables and other section values is supported by 
 # Collection of values used in your configuration
 class MainConfigPaths(ConfigEntryCollection):
     def __init__(self):
+        # Shortcut to create options on the same section
         section = ConfigSection("Dirs")
         self.data_root_dir = section.Option(
             "data_root_dir",
             r"${HOME}/data/",
             "Root directory for all data",
+            is_dir=True, # Access to this value automatically creates the directory
             long_instruction="The subdirectories defined in [Subdirs] will be created in this directory, except you define them as absolute paths.",
         )
         self.app_data_dir = section.Option(
             "app_data_dir",
             r"/opt/app/data/",
             "Directory for application data from the app.",
+            is_dir=True, # Access to this value automatically creates the directory
         )
 
-        subdir_section = ConfigSection("Subdirs")
-        self.cache_dir = subdir_section.Option(
+        self.cache_dir = ConfigEntry(
+            "Subdirs
             "cache_dir",
             r"${Dirs:data_root_dir}/cache/",
             "Main directory for cache files, e.g. for the discovering process.",
+            is_dir=True, # Access to this value automatically creates the directory
         )
 
 
 class MyConfig(Configuration):
     def __init__(self, path: str):
         super().__init__(path)
+
+        # Automatically inqiure the user a n/Y question
+        self.enabled = ConfirmationOption("enabled", True, "Enable something")
+
+        # Normal ConfigEntry
         self.value1 = ConfigEntry(
             section="Section1",
             option="value1",
             default="default",
             message="Description of value1"
+            inquire=self.is_enabled, # Only ask for this value if enabled is True
         )
 
+        # Value transformed ConfigEntry
+        self.some_number = ConfigEntry(
+            "some_number",
+            4,
+            "A number:",
+            inquire=self.is_enabled,
+            value_getter=int, # Automatically transforms the string value into an integer
+            # Automatically transforms the integer value into a string on write
+            value_setter=lambda x: str(x), # The same like 'value_setter=str', which is the default
+            long_instruction="This number is a number :D",
+        )
+
+        # Include the ConfigEntryCollection
         self.paths = MainConfigPaths()
 
+        # Selection of multiple predefined values
+        self.selection = ConfigSelectionEntry(
+            section="Test",
+            option="a_selection",
+            default=["b"],
+            message="Test selection entry",
+            choices=["a", "b", "c"],
+            multiselect=True,
+            delimiter=",\n", # Defines how the value is written back and read
+        )
 
 config = MyConfig("myconfig.cfg")
 config.load()
