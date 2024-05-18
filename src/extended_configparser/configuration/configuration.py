@@ -30,11 +30,34 @@ class Configuration:
         base_paths: list[str] | None = None,
         auto_save: bool = False,
     ) -> None:
-        self.auto_save = auto_save
+        """Create a new Configuration object.
+
+        Parameters
+        ----------
+        path : str
+            File path to the configuration file.
+        interpolation : Interpolation, optional
+            Interpolation to use for the configuration file, by default EnvInterpolation()
+        base_paths : list[str] | None, optional
+            If the values of the configuration using interpolation reference other configuration files, those file paths can be specified here.
+        auto_save : bool, optional
+            If True, the configuration will be saved automatically after setting a value.
+        """
+
         self.config_path = path
+        """File path to the configuration file."""
+
+        self.auto_save = auto_save
+        """If True, the configuration will be saved automatically after setting a value."""
+
         self.base_paths = base_paths or []
+        """Paths to other configuration files that are automatically read."""
+
         self._entries: list[ConfigEntry] = []
+        """Cache for the entries of the configuration."""
+
         self._config_parser = ExtendedConfigParser(interpolation=interpolation)
+        """ConfigParser object used to read and write the configuration file."""
 
     @staticmethod
     def get_config_entries_in_object(cfg: Configuration, ignore: list[str] = ["entries"]) -> list[ConfigEntry]:
@@ -56,6 +79,11 @@ class Configuration:
 
     @property
     def entries(self) -> list[ConfigEntry]:
+        """
+        Get all ConfigEntries in the configuration object.
+        Based on the defined ConfigEntrie or ConfigEntryCollection members of the object.
+        """
+
         if len(self._entries) == 0:
             # Iter over each attribute of the object and check if it is a ConfigEntry or a subclass of it
             self._entries = Configuration.get_config_entries_in_object(self)

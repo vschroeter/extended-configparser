@@ -6,6 +6,14 @@ import re
 
 
 class EnvInterpolation(configparser.ExtendedInterpolation):
+    """
+    Interpolation which expands environment variables in values.
+    Subclass of ExtendedInterpolation, thus it also supports the ${section:option} syntax.
+
+    To interpolate environment variables in values, use the following syntax:
+    value = ${ENV_VAR_NAME}
+    """
+
     ENV_PATTERN = re.compile(r"\$\[([^\}]+)\]")
     _KEYCRE = re.compile(r"\$\{([^}]+)\}")
 
