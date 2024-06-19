@@ -247,7 +247,7 @@ class ExtendedConfigParser(configparser.ConfigParser):
         for bracket in remove_brackets:
             list_str = list_str.lstrip(bracket).rstrip(bracket)
 
-        return [i.strip() for i in list_str.split(delimiter)]
+        return [i.strip() for i in list_str.split(delimiter) if len(i.strip()) > 0]
 
     @staticmethod
     def list_to_str(list: list[str] | str, delimiter: str = ",", brackets: str = "[]") -> str:
