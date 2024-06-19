@@ -77,9 +77,12 @@ class ExtendedConfigParser(configparser.ConfigParser):
         if isinstance(filenames, (str, os.PathLike)):
             filenames = [filenames]
         for filename in filenames:
-            with open(filename, encoding=encoding) as f:
-                self.read_file(f, filename)
-                self._parse_comments(f.read())
+            if os.path.exists(filename) and os.path.isfile(filename):
+                with open(filename, encoding=encoding) as f:
+                    self.read_file(f, filename)
+                    self._parse_comments(f.read())
+            else:
+                logger.warning(f"File {filename} does not exist.")
 
     def read_file(self, f, source=None) -> None:
         """Like read() but the argument must be a file-like object.
