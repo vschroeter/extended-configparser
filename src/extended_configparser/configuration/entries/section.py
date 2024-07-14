@@ -29,7 +29,7 @@ class ConfigSection:
     def Option(
         self,
         option: str,
-        default: S | str,
+        default: S | str | None,
         message: str,
         inquire: InquireCondition = True,
         is_dir: bool = False,
@@ -41,7 +41,7 @@ class ConfigSection:
         return ConfigEntry[S](
             section=self.name,
             option=option,
-            default=value_setter(default),
+            default=default,
             message=message,
             inquire=inquire,
             is_dir=is_dir,
