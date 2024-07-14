@@ -32,6 +32,7 @@ class ExtendedConfigParser(configparser.ConfigParser):
         empty_lines_in_values: bool = True,
         default_section=configparser.DEFAULTSECT,
         interpolation: configparser.Interpolation = configparser.ExtendedInterpolation(),
+        ignore_non_existent_files: bool = True,
         converters=configparser._UNSET,
     ) -> None:
         if defaults is None:
@@ -57,12 +58,13 @@ class ExtendedConfigParser(configparser.ConfigParser):
         self._section_comments: dict[str, str | None] = {}
         self._delimiters = delimiters
         self._comment_prefixes = comment_prefixes
+        self._ignore_non_existent_files = ignore_non_existent_files
 
     #############################################################################
     ### INTERNAL AND OVERRIDE METHODS
     #############################################################################
 
-    def read(self, filenames, encoding=None) -> None:
+    def read(self, filenames, encoding=None) -> list[str]:
         """Read and parse a filename or an iterable of filenames.
 
         Files that cannot be opened are silently ignored; this is
@@ -74,12 +76,20 @@ class ExtendedConfigParser(configparser.ConfigParser):
 
         Return list of successfully read files.
         """
+        paths_ok = []
         if isinstance(filenames, (str, os.PathLike)):
             filenames = [filenames]
         for filename in filenames:
-            with open(filename, encoding=encoding) as f:
-                self.read_file(f, filename)
-                self._parse_comments(f.read())
+            if os.path.exists(filename) and os.path.isfile(filename):
+                try:
+                    with open(filename, encoding=encoding) as f:
+                        self.read_file(f, filename)
+                        self._parse_comments(f.read())
+                except OSError:
+                    continue
+                paths_ok.append(filename)
+            elif not self._ignore_non_existent_files:
+                logger.warning(f"File {filename} does not exist.")
 
     def read_file(self, f, source=None) -> None:
         """Like read() but the argument must be a file-like object.
@@ -247,7 +257,7 @@ class ExtendedConfigParser(configparser.ConfigParser):
         for bracket in remove_brackets:
             list_str = list_str.lstrip(bracket).rstrip(bracket)
 
-        return [i.strip() for i in list_str.split(delimiter)]
+        return [i.strip() for i in list_str.split(delimiter) if len(i.strip()) > 0]
 
     @staticmethod
     def list_to_str(list: list[str] | str, delimiter: str = ",", brackets: str = "[]") -> str:

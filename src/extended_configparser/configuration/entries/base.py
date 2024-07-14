@@ -43,7 +43,7 @@ class ConfigEntry(Generic[T]):
         self,
         section: str,
         option: str,
-        default: T | str,
+        default: T | str | None,
         message: str,
         inquire: InquireCondition = True,
         is_dir: bool = False,
@@ -81,7 +81,7 @@ class ConfigEntry(Generic[T]):
         self.option = self.escape_whitespace(option)
         """Option of the entry"""
 
-        self.default = value_setter(default)
+        self.default: str | None = value_setter(default) if default is not None else None
         """Default value of the entry"""
 
         self.message = message
@@ -116,42 +116,75 @@ class ConfigEntry(Generic[T]):
         if "amark" not in self.inquirer_kwargs:
             self.inquirer_kwargs["amark"] = ">"
 
+    def __call__(self, fallback: T | None = None) -> T | None:
+        """
+        Get the value of the entry.
+        """
+        return self.get_value(fallback)
+
     def get_value_str(self) -> str:
         """Return the string representation of the entry for the value."""
         return f"{self.value}"
 
-    def get_value(self, raw: bool = False):
+    def get_raw_value(self, fallback: str | None = None) -> str | None:
+        """Get the raw value of the entry.
+
+        Parameters
+        ----------
+        fallback : str | None, optional
+            The fallback value to return if the entry is not found, by default None
+
+        Returns
+        -------
+        str | None
+            The raw value before interpolation.
+        """
         if self.configparser is None:
             raise ValueError("ConfigParser is not set.")
 
-        return self.configparser.get(self.section, self.option, fallback=self.default, raw=raw)
+        return self.configparser.get(self.section, self.option, raw=True, fallback=fallback)
 
-    def set_value(self, value: T):
+    def get_value(self, fallback: T | None = None, use_default=True) -> T | None:
+        """Get the value of the entry.
+
+        Parameters
+        ----------
+        fallback : T | None, optional
+            The fallback value to return if the entry is not found, by default None
+        use_default : bool, optional
+            If True, the default value will be returned if the entry is not found, by default True. Set to False if you want to return None if the entry is not found.
+
+        Returns
+        -------
+        T | None
+            The value of the entry.
+        """
         if self.configparser is None:
             raise ValueError("ConfigParser is not set.")
 
-        v = self.value_setter(value)
-        self.configparser.set(self.section, self.option, v, self.get_comment())
+        value = self.configparser.get(
+            self.section,
+            self.option,
+            fallback=self.default if fallback is None else None,
+            raw=False,
+        )
 
-        if self.configuration is not None and self.configuration.auto_save:
-            self.configuration.write()
+        if value is None:
+            if fallback is not None:
+                return fallback
 
-    @property
-    def raw_value(self) -> str:
-        return self.get_value(True)
+            if use_default:
+                return self.value_transformer(self.default) if self.default is not None else None
 
-    @property
-    def value(self) -> T:
-        v = self.get_value(False)
+            return None
+
         if self.is_dir:
             from pathlib import Path
 
-            p = Path(v)
+            p = Path(value)
 
             # TODO: Make this OS independent
-            if p.is_absolute() or any(v.startswith(b) for b in ("./", "../", "~/")):
-                # if not p.parent.exists():
-                #     p.parent.mkdir(parents=True)
+            if p.is_absolute() or any(value.startswith(b) for b in ("./", "../", "~/")):
                 if not p.exists():
                     try:
                         p.mkdir(parents=True, exist_ok=True)
@@ -160,12 +193,42 @@ class ConfigEntry(Generic[T]):
 
                 v = str(p)
 
-        # if self.value_transformer:
         v = self.value_transformer(v)
         return v
 
+    def set_value(self, value: T | None) -> None:
+        """Set the value of the entry.
+
+        Parameters
+        ----------
+        value : T | None
+            The value to set. If None, the entry will be removed.
+        """
+
+        if self.configparser is None:
+            raise ValueError("ConfigParser is not set.")
+
+        if value is None:
+            if self.configparser.has_option(self.section, self.option):
+                self.configparser.remove_option(self.section, self.option)
+            return
+        else:
+            v = self.value_setter(value)
+            self.configparser.set(self.section, self.option, v, self.get_comment())
+
+        if self.configuration is not None and self.configuration.auto_save:
+            self.configuration.write()
+
+    @property
+    def raw_value(self) -> str | None:
+        return self.get_raw_value()
+
+    @property
+    def value(self) -> T | None:
+        return self.get_value()
+
     @value.setter
-    def value(self, value: T) -> None:
+    def value(self, value: T | None) -> None:
         self.set_value(value)
 
     def __str__(self) -> str:
@@ -206,10 +269,12 @@ class ConfigEntry(Generic[T]):
 
         from InquirerPy import inquirer
 
+        default = ((self.raw_value or self.default) if use_existing_as_default else self.default) or ""
+
         msg = self.get_msg(self.message)
         self.value = inquirer.text(
             message=msg,
-            default=(self.raw_value if use_existing_as_default else self.default),
+            default=default,
             **self.inquirer_kwargs,
         ).execute()
 
