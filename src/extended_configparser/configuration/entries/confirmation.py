@@ -93,6 +93,5 @@ class ConfigConfirmationEntry(ConfigEntry[bool]):
     def get_bool_str(value: bool | str) -> str:
         if not isinstance(value, bool):
             value = ConfigConfirmationEntry.to_bool(value)
-        
+
         return "Yes" if value else "No"
-        
