@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "extended-configparser"
-version = "1.2.0"
+version = "1.2.1"
 authors = [{ name = "Valentin Schröter", email = "vasc9380@th-wildau.de" }]
 description = "Extended config parser."
 readme = "README.md"

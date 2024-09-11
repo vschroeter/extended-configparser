@@ -191,10 +191,10 @@ class ConfigEntry(Generic[T]):
                     except Exception as e:
                         logger.warning(f"Failed to create directory {p}: {e}")
 
-                v = str(p)
+                value = str(p)
 
-        v = self.value_transformer(v)
-        return v
+        value = self.value_transformer(value)
+        return value
 
     def set_value(self, value: T | None) -> None:
         """Set the value of the entry.

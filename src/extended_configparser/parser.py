@@ -91,6 +91,8 @@ class ExtendedConfigParser(configparser.ConfigParser):
             elif not self._ignore_non_existent_files:
                 logger.warning(f"File {filename} does not exist.")
 
+        return paths_ok
+
     def read_file(self, f, source=None) -> None:
         """Like read() but the argument must be a file-like object.
 
@@ -232,6 +234,10 @@ class ExtendedConfigParser(configparser.ConfigParser):
         """
         if not self.has_section(section) and add_section_if_missing:
             self.add_section(section)
+
+        if option is None:
+            logger.error("Option name cannot be None @ setting %s to %s", section, value)
+            return
 
         super().set(section, option, value)
         if comment:
