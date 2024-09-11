@@ -104,7 +104,6 @@ class Configuration:
             entry.configparser = self._config_parser
             entry.configuration = self
             entry.value = entry.raw_value
-
         self.auto_save = auto_save
 
     def load(self, inquire_if_missing: bool = False, quiet: bool = False) -> None:

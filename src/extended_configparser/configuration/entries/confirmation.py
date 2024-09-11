@@ -65,9 +65,8 @@ class ConfigConfirmationEntry(ConfigEntry[bool]):
         ).execute()
 
     @staticmethod
-    def to_bool(value: Any):
+    def to_bool(value: str):
         """Transform values to boolean."""
-
         if value is None:
             return False
 
@@ -91,5 +90,9 @@ class ConfigConfirmationEntry(ConfigEntry[bool]):
             return False
 
     @staticmethod
-    def get_bool_str(value: bool) -> str:
+    def get_bool_str(value: bool | str) -> str:
+        if not isinstance(value, bool):
+            value = ConfigConfirmationEntry.to_bool(value)
+        
         return "Yes" if value else "No"
+        
