@@ -235,6 +235,10 @@ class ExtendedConfigParser(configparser.ConfigParser):
         if not self.has_section(section) and add_section_if_missing:
             self.add_section(section)
 
+        if option is None:
+            logger.error("Option name cannot be None @ setting %s to %s", section, value)
+            return
+
         super().set(section, option, value)
         if comment:
             self.set_comment(section, option, comment)
