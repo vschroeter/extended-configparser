@@ -96,19 +96,17 @@ class Configuration:
 
     def _update_entries(self):
         """Update the entries based on the current read configurations."""
-
         auto_save = self.auto_save
         self.auto_save = False
 
         for entry in self.entries:
             entry.configparser = self._config_parser
             entry.configuration = self
-            entry.value = entry.raw_value
+            entry.value = entry.raw_value or entry.default
         self.auto_save = auto_save
 
     def load(self, inquire_if_missing: bool = False, quiet: bool = False) -> None:
         """Load the configuration file and set the values of the entries.
-
 
         Parameters
         ----------
@@ -166,7 +164,7 @@ class Configuration:
         if os.path.exists(save_path):
             parser.read(save_path)
         for entry in self.entries:
-            parser.set(entry.section, entry.option, entry.raw_value, entry.get_comment())
+            parser.set(entry.section, entry.option, entry.raw_value or entry.default, entry.get_comment())
 
         with io.open(save_path, "w") as f:
             parser.write(f)
